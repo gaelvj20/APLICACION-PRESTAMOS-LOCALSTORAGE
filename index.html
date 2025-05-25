@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplicación de Préstamos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .container-fluid {
+            flex-grow: 1;
+            padding: 20px;
+        }
+        .card {
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary, .btn-success, .btn-info, .btn-warning, .btn-danger, .btn-secondary, .btn-indigo {
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .btn-primary:hover, .btn-success:hover, .btn-info:hover, .btn-warning:hover, .btn-danger:hover, .btn-secondary:hover, .btn-indigo:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+        }
+        .btn-indigo {
+            background-color: #6610f2; /* Color personalizado para Liquidar */
+            border-color: #6610f2;
+            color: white;
+        }
+        .btn-indigo:hover {
+            background-color: #560ce8;
+            border-color: #560ce8;
+        }
+        .form-control, .form-select {
+            border-radius: 0.5rem;
+        }
+        .table {
+            border-radius: 1rem;
+            overflow: hidden; /* Asegura que los bordes redondeados se apliquen a la tabla */
+        }
+        .table thead {
+            background-color: #e9ecef;
+        }
+        .status-badge {
+            padding: 0.3em 0.6em;
+            border-radius: 1rem;
+            font-size: 0.75em;
+            font-weight: bold;
+        }
+        .status-PENDIENTE { background-color: #fff3cd; color: #664d03; }
+        .status-ATRASADO { background-color: #f8d7da; color: #842029; }
+        .status-LIQUIDADO, .status-PAGADO { background-color: #d1e7dd; color: #0f5132; }
+
+        /* Modales */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1040;
+        }
+        .custom-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 30px;
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3);
+            z-index: 1050;
+            max-width: 500px;
+            width: 90%;
+        }
+        .custom-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .custom-modal-header h5 {
+            margin: 0;
+            font-weight: bold;
+        }
+        .custom-modal-body {
+            margin-bottom: 20px;
+        }
+        .custom-modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div id="app-container" class="d-flex flex-column align-items-center justify-content-center min-vh-100">
+            </div>
+    </div>
+
+    <div id="messageModal" class="custom-modal d-none">
+        <div class="custom-modal-header">
+            <h5 id="messageModalTitle">Mensaje</h5>
+            <button type="button" class="btn-close" onclick="cerrarModalMensaje()"></button>
+        </div>
+        <div class="custom-modal-body">
+            <p id="messageModalBody"></p>
+        </div>
+        <div class="custom-modal-footer">
+            <button type="button" class="btn btn-primary" onclick="cerrarModalMensaje()">Cerrar</button>
+        </div>
+    </div>
+    <div id="confirmationModal" class="custom-modal d-none">
+        <div class="custom-modal-header">
+            <h5>Confirmación</h5>
+            <button type="button" class="btn-close" onclick="cerrarModalConfirmacion()"></button>
+        </div>
+        <div class="custom-modal-body">
+            <p id="confirmationModalBody"></p>
+        </div>
+        <div class="custom-modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="cerrarModalConfirmacion()">No</button>
+            <button type="button" class="btn btn-primary" id="confirmButton">Sí</button>
+        </div>
+    </div>
+    <div id="inputModal" class="custom-modal d-none">
+        <div class="custom-modal-header">
+            <h5 id="inputModalTitle">Entrada de Datos</h5>
+            <button type="button" class="btn-close" onclick="cerrarModalEntrada()"></button>
+        </div>
+        <div class="custom-modal-body">
+            <p id="inputModalMessage"></p>
+            <input type="number" step="0.01" class="form-control" id="inputModalValue" placeholder="Ingrese el valor">
+        </div>
+        <div class="custom-modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="cerrarModalEntrada()">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="inputConfirmButton">Confirmar</button>
+        </div>
+    </div>
+    <div id="modalBackdrop" class="modal-backdrop d-none"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script>
+        // --- Variables Globales y Estado de la Aplicación ---
+        let estaAutenticado = false;
+        let idUsuarioActual = null; // Para simular el ID de usuario en localStorage
+        let paginaActual = 'login'; // Página actual: 'login', 'dashboard', 'clientes', 'prestamos', 'pagos', 'detalleCliente'
+
+        // --- Funciones de Utilidad para localStorage (Base de Datos Sencilla) ---
+        // Genera un ID único (UUID v4 simplificado)
+        function generarIdUnico() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        // Obtiene datos del localStorage por clave
+        function obtenerDatos(clave) {
+            const datos = localStorage.getItem(clave);
+            return datos ? JSON.parse(datos) : [];
+        }
+
+        // Guarda datos en localStorage por clave
+        function guardarDatos(clave, datos) {
+            localStorage.setItem(clave, JSON.stringify(datos));
+        }
+
+        // --- Funciones de Modales Personalizados ---
+        let callbackConfirmacionActual = null; // Callback para el modal de confirmación
+        let callbackEntradaActual = null; // Callback para el modal de entrada
+
+        // Muestra un modal de mensaje
+        function mostrarModalMensaje(titulo, mensaje, tipo = 'info') {
+            const modal = document.getElementById('messageModal');
+            const fondo = document.getElementById('modalBackdrop');
+            document.getElementById('messageModalTitle').textContent = titulo;
+            document.getElementById('messageModalBody').textContent = mensaje;
+
+            // Elimina clases de tipo anteriores y añade la nueva
+            modal.classList.remove('bg-success', 'bg-danger', 'bg-info', 'bg-warning');
+            modal.querySelector('.custom-modal-header').classList.remove('bg-success', 'bg-danger', 'bg-info', 'bg-warning'); // Asegura que el encabezado también cambie de color
+
+            let claseColorEncabezado = '';
+            switch (tipo) {
+                case 'success': claseColorEncabezado = 'bg-success'; break;
+                case 'error': claseColorEncabezado = 'bg-danger'; break;
+                case 'info': default: claseColorEncabezado = 'bg-info'; break;
+            }
+            modal.querySelector('.custom-modal-header').classList.add(claseColorEncabezado);
+
+            modal.classList.remove('d-none');
+            fondo.classList.remove('d-none');
+        }
+
+        // Cierra el modal de mensaje
+        function cerrarModalMensaje() {
+            document.getElementById('messageModal').classList.add('d-none');
+            document.getElementById('modalBackdrop').classList.add('d-none');
+        }
+
+        // Muestra un modal de confirmación
+        function mostrarModalConfirmacion(mensaje, alConfirmar) {
+            const modal = document.getElementById('confirmationModal');
+            const fondo = document.getElementById('modalBackdrop');
+            document.getElementById('confirmationModalBody').textContent = mensaje;
+            callbackConfirmacionActual = alConfirmar;
+            document.getElementById('confirmButton').onclick = () => {
+                callbackConfirmacionActual();
+                cerrarModalConfirmacion();
+            };
+            modal.classList.remove('d-none');
+            fondo.classList.remove('d-none');
+        }
+
+        // Cierra el modal de confirmación
+        function cerrarModalConfirmacion() {
+            document.getElementById('confirmationModal').classList.add('d-none');
+            document.getElementById('modalBackdrop').classList.add('d-none');
+            callbackConfirmacionActual = null;
+        }
+
+        // Muestra un modal de entrada de datos
+        function mostrarModalEntrada(titulo, mensaje, marcadorPosicion, alConfirmar, valorInicial = '') {
+            const modal = document.getElementById('inputModal');
+            const fondo = document.getElementById('modalBackdrop');
+            document.getElementById('inputModalTitle').textContent = titulo;
+            document.getElementById('inputModalMessage').textContent = mensaje;
+            const campoEntrada = document.getElementById('inputModalValue');
+            campoEntrada.placeholder = marcadorPosicion;
+            campoEntrada.value = valorInicial;
+            callbackEntradaActual = alConfirmar;
+            document.getElementById('inputConfirmButton').onclick = () => {
+                callbackEntradaActual(campoEntrada.value);
+                cerrarModalEntrada();
+            };
+            modal.classList.remove('d-none');
+            fondo.classList.remove('d-none');
+        }
+
+        // Cierra el modal de entrada de datos
+        function cerrarModalEntrada() {
+            document.getElementById('inputModal').classList.add('d-none');
+            document.getElementById('modalBackdrop').classList.add('d-none');
+            callbackEntradaActual = null;
+        }
+
+        // --- Lógica de Autenticación ---
+        // Verifica el estado de autenticación del usuario
+        function verificarAutenticacion() {
+            const usuarioActual = localStorage.getItem('currentUser');
+            if (usuarioActual) {
+                estaAutenticado = true;
+                idUsuarioActual = JSON.parse(usuarioActual).id;
+                navegarA('dashboard');
+            } else {
+                estaAutenticado = false;
+                idUsuarioActual = null;
+                navegarA('login');
+            }
+        }
+
+        // Maneja el inicio de sesión
+        function manejarInicioSesion(evento) {
+            evento.preventDefault();
+            const nombreUsuario = document.getElementById('loginUsername').value;
+            const contrasena = document.getElementById('loginPassword').value;
+
+            const usuarios = obtenerDatos('users');
+            const usuario = usuarios.find(u => u.username === nombreUsuario && u.password === contrasena);
+
+            if (usuario) {
+                localStorage.setItem('currentUser', JSON.stringify(usuario));
+                estaAutenticado = true;
+                idUsuarioActual = usuario.id;
+                mostrarModalMensaje('Éxito', 'Inicio de sesión exitoso.', 'success');
+                navegarA('dashboard');
+            } else {
+                mostrarModalMensaje('Error', 'Nombre de usuario o contraseña incorrectos.', 'error');
+            }
+        }
+
+        // Maneja el registro de un nuevo usuario
+        function manejarRegistro(evento) {
+            evento.preventDefault();
+            const nombreUsuario = document.getElementById('registerUsername').value;
+            const contrasena = document.getElementById('registerPassword').value;
+
+            const usuarios = obtenerDatos('users');
+            if (usuarios.some(u => u.username === nombreUsuario)) {
+                mostrarModalMensaje('Error', 'El nombre de usuario ya existe.', 'error');
+                return;
+            }
+
+            const nuevoUsuario = { id: generarIdUnico(), username: nombreUsuario, password: contrasena };
+            usuarios.push(nuevoUsuario);
+            guardarDatos('users', usuarios);
+            mostrarModalMensaje('Éxito', 'Registro exitoso. Por favor, inicia sesión.', 'success');
+            document.getElementById('registerForm').reset();
+            mostrarFormularioInicioSesion(); // Volver al formulario de login
+        }
+
+        // Maneja el cierre de sesión
+        function manejarCierreSesion() {
+            localStorage.removeItem('currentUser');
+            estaAutenticado = false;
+            idUsuarioActual = null;
+            mostrarModalMensaje('Éxito', 'Sesión cerrada exitosamente.', 'success');
+            navegarA('login');
+        }
+
+        // Muestra el formulario de inicio de sesión
+        function mostrarFormularioInicioSesion() {
+            document.getElementById('loginSection').classList.remove('d-none');
+            document.getElementById('registerSection').classList.add('d-none');
+        }
+
+        // Muestra el formulario de registro
+        function mostrarFormularioRegistro() {
+            document.getElementById('loginSection').classList.add('d-none');
+            document.getElementById('registerSection').classList.remove('d-none');
+        }
+
+        // --- Navegación entre Secciones ---
+        // Cambia la página actual y vuelve a renderizar la aplicación
+        function navegarA(pagina) {
+            paginaActual = pagina;
+            renderizarApp();
+        }
+
+        // --- Renderizado de Vistas ---
+        // Renderiza la sección de la aplicación según la página actual
+        function renderizarApp() {
+            const contenedorApp = document.getElementById('app-container');
+            contenedorApp.innerHTML = ''; // Limpiar el contenido anterior
+
+            if (paginaActual === 'loading') {
+                contenedorApp.innerHTML = `
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-3">Cargando aplicación...</p>
+                    </div>
+                `;
+                setTimeout(() => verificarAutenticacion(), 500); // Simula la carga, luego verifica la autenticación
+                return;
+            }
+
+            // Si no está autenticado y no está en la página de login/registro, redirige a login
+            if (!estaAutenticado && paginaActual !== 'login' && paginaActual !== 'register') {
+                paginaActual = 'login';
+            }
+
+            switch (paginaActual) {
+                case 'login':
+                    renderizarLogin();
+                    break;
+                case 'dashboard':
+                    renderizarDashboard();
+                    break;
+                case 'clientes':
+                    renderizarClientes();
+                    break;
+                case 'prestamos':
+                    renderizarPrestamos();
+                    break;
+                case 'pagos':
+                    renderizarPagos();
+                    break;
+                case 'detalleCliente':
+                    renderizarDetalleCliente();
+                    break;
+                default:
+                    renderizarLogin();
+                    break;
+            }
+        }
+
+        // Renderiza la sección de inicio de sesión/registro
+        function renderizarLogin() {
+            const contenedorApp = document.getElementById('app-container');
+            contenedorApp.innerHTML = `
+                <div class="card p-4 shadow-lg" style="max-width: 400px; width: 100%;">
+                    <h2 class="text-center mb-4 text-primary">Iniciar Sesión</h2>
+                    <div id="loginSection">
+                        <form id="loginForm">
+                            <div class="mb-3">
+                                <label for="loginUsername" class="form-label">Usuario</label>
+                                <input type="text" class="form-control rounded-pill" id="loginUsername" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="loginPassword" class="form-label">Contraseña</label>
+                                <input type="password" class="form-control rounded-pill" id="loginPassword" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 rounded-pill">Iniciar Sesión</button>
+                        </form>
+                        <p class="text-center mt-3">
+                            ¿No tienes una cuenta? <a href="#" id="showRegisterLink">Regístrate aquí</a>
+                        </p>
+                    </div>
+                    <div id="registerSection" class="d-none">
+                        <h3 class="text-center mb-4 text-primary">Registro de Usuario</h3>
+                        <form id="registerForm">
+                            <div class="mb-3">
+                                <label for="registerUsername" class="form-label">Usuario</label>
+                                <input type="text" class="form-control rounded-pill" id="registerUsername" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="registerPassword" class="form-label">Contraseña</label>
+                                <input type="password" class="form-control rounded-pill" id="registerPassword" required>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100 rounded-pill">Registrarse</button>
+                        </form>
+                        <p class="text-center mt-3">
+                            ¿Ya tienes una cuenta? <a href="#" id="showLoginLink">Inicia Sesión</a>
+                        </p>
+                    </div>
+                </div>
+            `;
+            // Añade los event listeners después de que los elementos se han renderizado
+            document.getElementById('loginForm').addEventListener('submit', manejarInicioSesion);
+            document.getElementById('registerForm').addEventListener('submit', manejarRegistro);
+            document.getElementById('showRegisterLink').addEventListener('click', (e) => { e.preventDefault(); mostrarFormularioRegistro(); });
+            document.getElementById('showLoginLink').addEventListener('click', (e) => { e.preventDefault(); mostrarFormularioInicioSesion(); });
+        }
+
+        // Renderiza la sección del panel de control (dashboard)
+        function renderizarDashboard() {
+            const contenedorApp = document.getElementById('app-container');
+            contenedorApp.innerHTML = `
+                <div class="card p-5 shadow-lg text-center" style="max-width: 800px; width: 100%;">
+                    <h2 class="mb-5 text-primary">Menú Principal</h2>
+                    <p class="text-muted mb-4">ID de Usuario: <span class="badge bg-secondary">${idUsuarioActual}</span></p>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <button class="btn btn-primary w-100 p-4 fs-4 d-flex flex-column align-items-center" onclick="navegarA('pagos')">
+                                🧾 <span class="mt-2">Pagos</span>
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button class="btn btn-info w-100 p-4 fs-4 d-flex flex-column align-items-center" onclick="navegarA('clientes')">
+                                👤 <span class="mt-2">Clientes</span>
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button class="btn btn-success w-100 p-4 fs-4 d-flex flex-column align-items-center" onclick="navegarA('prestamos')">
+                                💸 <span class="mt-2">Préstamos</span>
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button class="btn btn-warning w-100 p-4 fs-4 d-flex flex-column align-items-center" onclick="navegarA('detalleCliente')">
+                                📊 <span class="mt-2">Detalle del Cliente</span>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="btn btn-danger mt-5 px-5 py-3 rounded-pill" onclick="manejarCierreSesion()">Cerrar Sesión</button>
+                </div>
+            `;
+        }
+
+        // Renderiza la sección de gestión de clientes
+        function renderizarClientes() {
+            const contenedorApp = document.getElementById('app-container');
+            contenedorApp.innerHTML = `
+                <div class="card p-4 shadow-lg w-100 mb-4">
+                    <h2 class="mb-4 text-primary">Gestión de Clientes</h2>
+                    <form id="formularioCliente" class="mb-4">
+                        <input type="hidden" id="idCliente">
+                        <div class="mb-3">
+                            <label for="nombreCliente" class="form-label">Nombre</label>
+                            <input type="text" class="form-control rounded-pill" id="nombreCliente" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="celularCliente" class="form-label">Celular</label>
+                            <input type="text" class="form-control rounded-pill" id="celularCliente" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="direccionCliente" class="form-label">Dirección</label>
+                            <input type="text" class="form-control rounded-pill" id="direccionCliente">
+                        </div>
+                        <button type="submit" class="btn btn-primary rounded-pill" id="guardarClienteBtn">Añadir Cliente</button>
+                        <button type="button" class="btn btn-secondary rounded-pill d-none" id="cancelarEdicionBtn">Cancelar Edición</button>
+                    </form>
+                </div>
+                <div class="card p-4 shadow-lg w-100">
+                    <h3 class="mb-3 text-secondary">Listado de Clientes</h3>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped rounded-3 overflow-hidden">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Celular</th>
+                                    <th>Dirección</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listaClientes">
+                                </tbody>
+                        </table>
+                    </div>
+                    <button class="btn btn-secondary mt-4 rounded-pill" onclick="navegarA('dashboard')">Volver al Menú</button>
+                </div>
+            `;
+
+            // Obtener referencias a los elementos del DOM
+            const formularioCliente = document.getElementById('formularioCliente');
+            const guardarClienteBtn = document.getElementById('guardarClienteBtn');
+            const cancelarEdicionBtn = document.getElementById('cancelarEdicionBtn');
+            const campoIdCliente = document.getElementById('idCliente'); // Campo oculto para el ID del cliente
+            const campoNombreCliente = document.getElementById('nombreCliente');
+            const campoCelularCliente = document.getElementById('celularCliente');
+            const campoDireccionCliente = document.getElementById('direccionCliente');
+            const listaClientes = document.getElementById('listaClientes');
+
+            let idClienteEditando = null; // Variable para almacenar el ID del cliente que se está editando
+
+            // Carga y muestra la lista de clientes desde localStorage
+            function cargarClientes() {
+                const clientes = obtenerDatos(`users_${idUsuarioActual}_clients`);
+                listaClientes.innerHTML = ''; // Limpia la lista existente
+                if (clientes.length === 0) {
+                    listaClientes.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No hay clientes registrados.</td></tr>';
+                    return;
+                }
+                clientes.forEach(cliente => {
+                    const fila = listaClientes.insertRow(); // Inserta una nueva fila en la tabla
+                    fila.innerHTML = `
+                        <td>${cliente.name}</td>
+                        <td>${cliente.phone}</td>
+                        <td>${cliente.address}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning me-2" onclick="editarCliente('${cliente.id}')">Editar</button>
+                            <button class="btn btn-sm btn-danger" onclick="eliminarCliente('${cliente.id}')">Eliminar</button>
+                        </td>
+                    `;
+                });
+            }
+
+            // Maneja el envío del formulario para añadir o actualizar un cliente
+            formularioCliente.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const clientes = obtenerDatos(`users_${idUsuarioActual}_clients`);
+                const nombre = campoNombreCliente.value;
+                const celular = campoCelularCliente.value;
+                const direccion = campoDireccionCliente.value;
+
+                if (!nombre || !celular) {
+                    mostrarModalMensaje('Error', 'Nombre y celular son obligatorios.', 'error');
+                    return;
+                }
+
+                if (idClienteEditando) {
+                    // Actualizar cliente existente
+                    const indice = clientes.findIndex(c => c.id === idClienteEditando);
+                    if (indice !== -1) {
+                        clientes[indice] = { id: idClienteEditando, name: nombre, phone: celular, address: direccion };
+                        guardarDatos(`users_${idUsuarioActual}_clients`, clientes);
+                        mostrarModalMensaje('Éxito', 'Cliente actualizado exitosamente.', 'success');
+                    }
+                    idClienteEditando = null;
+                    guardarClienteBtn.textContent = 'Añadir Cliente';
+                    cancelarEdicionBtn.classList.add('d-none');
+                } else {
+                    // Añadir nuevo cliente
+                    const nuevoCliente = { id: generarIdUnico(), name: nombre, phone: celular, address: direccion };
+                    clientes.push(nuevoCliente);
+                    guardarDatos(`users_${idUsuarioActual}_clients`, clientes);
+                    mostrarModalMensaje('Éxito', 'Cliente añadido exitosamente.', 'success');
+                }
+                formularioCliente.reset(); // Limpia el formulario
+                cargarClientes(); // Recarga la lista de clientes
+            });
+
+            // Maneja el botón de cancelar edición
+            cancelarEdicionBtn.addEventListener('click', () => {
+                idClienteEditando = null;
+                formularioCliente.reset();
+                guardarClienteBtn.textContent = 'Añadir Cliente';
+                cancelarEdicionBtn.classList.add('d-none');
+            });
+
+            // Función global para editar un cliente (llamada desde el HTML)
+            window.editarCliente = (id) => {
+                const clientes = obtenerDatos(`users_${idUsuarioActual}_clients`);
+                const clienteAEditar = clientes.find(c => c.id === id);
+                if (clienteAEditar) {
+                    idClienteEditando = id;
+                    campoNombreCliente.value = clienteAEditar.name;
+                    campoCelularCliente.value = clienteAEditar.phone;
+                    campoDireccionCliente.value = clienteAEditar.address;
+                    guardarClienteBtn.textContent = 'Actualizar Cliente';
+                    cancelarEdicionBtn.classList.remove('d-none');
+                }
+            };
+
+            // Función global para eliminar un cliente (llamada desde el HTML)
+            window.eliminarCliente = (id) => {
+                mostrarModalConfirmacion('¿Estás seguro de que quieres eliminar este cliente? Esto también eliminará sus préstamos y pagos asociados.', () => {
+                    let clientes = obtenerDatos(`users_${idUsuarioActual}_clients`);
+                    clientes = clientes.filter(c => c.id !== id);
+                    guardarDatos(`users_${idUsuarioActual}_clients`, clientes);
+
+                    // Eliminar préstamos y pagos asociados
+                    let prestamos = obtenerDatos(`users_${idUsuarioActual}_loans`);
+                    prestamos = prestamos.filter(prestamo => prestamo.clientId !== id);
+                    guardarDatos(`users_${idUsuarioActual}_loans`, prestamos);
+
+                    let pagos = obtenerDatos(`users_${idUsuarioActual}_payments`);
+                    pagos = pagos.filter(pago => pago.clientId !== id);
+                    guardarDatos(`users_${idUsuarioActual}_payments`, pagos);
+
+                    mostrarModalMensaje('Éxito', 'Cliente y sus datos asociados eliminados.', 'success');
+                    cargarClientes();
+                });
+            };
+
+            cargarClientes(); // Carga los clientes al renderizar la página
+        }
+
+        // Renderiza la sección de creación de préstamos
+        function renderizarPrestamos() {
+            const contenedorApp = document.getElementById('app-container');
+            contenedorApp.innerHTML = `
+                <div class="card p-4 shadow-lg w-100 mb-4">
+                    <h2 class="mb-4 text-primary">Crear Nuevo Préstamo</h2>
+                    <form id="formularioPrestamo">
+                        <div class="mb-3">
+                            <label for="selectorClientePrestamo" class="form-label">Seleccionar Cliente</label>
+                            <select class="form-select rounded-pill" id="selectorClientePrestamo" required>
+                                <option value="">-- Selecciona un cliente --</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="montoPrestamo" class="form-label">Monto a Prestar</label>
+                            <input type="number" class="form-control rounded-pill" id="montoPrestamo" min="0.01" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="interesPrestamo" class="form-label">Interés</label>
+                            <select class="form-select rounded-pill" id="interesPrestamo" required>
+                                <option value="10">10%</option>
+                                <option value="20">20%</option>
+                                <option value="30">30%</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="semanasPrestamo" class="form-label">Semanas</label>
+                            <select class="form-select rounded-pill" id="semanasPrestamo" required>
+                                ${Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}">${i + 1} semana(s)</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="bg-light p-3 rounded-3 mb-4">
+                            <p class="mb-1">Monto Total a Pagar: <strong id="mostrarMontoTotal">$0.00</strong></p>
+                            <p class="mb-0">Abono Semanal: <strong id="mostrarPagoSemanal">$0.00</strong></p>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 rounded-pill">Confirmar Préstamo</button>
+                    </form>
+                    <button class="btn btn-secondary mt-4 rounded-pill" onclick="navegarA('dashboard')">Volver al Menú</button>
+                </div>
+            `;
+
+            // Obtener referencias a los elementos del DOM
+            const selectorClientePrestamo = document.getElementById('selectorClientePrestamo');
+            const montoPrestamoInput = document.getElementById('montoPrestamo');
+            const interesPrestamoSelect = document.getElementById('interesPrestamo');
+            const semanasPrestamoSelect = document.getElementById('semanasPrestamo');
+            const mostrarMontoTotal = document.getElementById('mostrarMontoTotal');
+            const mostrarPagoSemanal = document.getElementById('mostrarPagoSemanal');
+            const formularioPrestamo = document.getElementById('formularioPrestamo');
+
+            // Carga los clientes en el selector de préstamos
+            function cargarClientesParaPrestamo() {
+                const clientes = obtenerDatos(`users_${idUsuarioActual}_clients`);
+                selectorClientePrestamo.innerHTML = '<option value="">-- Selecciona un cliente --</option>';
+                clientes.forEach(cliente => {
+                    const opcion = document.createElement('option');
+                    opcion.value = cliente.id;
+                    opcion.textContent = cliente.name;
+                    selectorClientePrestamo.appendChild(opcion);
+                });
+            }
+
+            // Calcula y muestra los detalles del préstamo (monto total, pago semanal)
+            function calcularDetallesPrestamo() {
+                const monto = parseFloat(montoPrestamoInput.value) || 0;
+                const tasaInteres = parseFloat(interesPrestamoSelect.value) / 100;
+                const semanas = parseInt(semanasPrestamoSelect.value) || 1;
+
+                const montoTotal = monto * (1 + tasaInteres);
+                const pagoSemanal = montoTotal / semanas;
+
+                mostrarMontoTotal.textContent = `$${montoTotal.toFixed(2)}`;
+                mostrarPagoSemanal.textContent = `$${pagoSemanal.toFixed(2)}`;
+            }
+
+            // Añade event listeners para recalcular los detalles del préstamo al cambiar los inputs
+            montoPrestamoInput.addEventListener('input', calcularDetallesPrestamo);
+            interesPrestamoSelect.addEventListener('change', calcularDetallesPrestamo);
+            semanasPrestamoSelect.addEventListener('change', calcularDetallesPrestamo);
+
+            // Maneja el envío del formulario para confirmar el préstamo
+            formularioPrestamo.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const idCliente = selectorClientePrestamo.value;
+                const monto = parseFloat(montoPrestamoInput.value);
+                const tasaInteres = parseFloat(interesPrestamoSelect.value);
+                const semanas = parseInt(semanasPrestamoSelect.value);
+                const montoTotal = parseFloat(mostrarMontoTotal.textContent.replace('$', ''));
+                const pagoSemanal = parseFloat(mostrarPagoSemanal.textContent.replace('$', ''));
+
+                if (!idCliente || monto <= 0 || semanas <= 0) {
+                    mostrarModalMensaje('Error', 'Por favor, completa todos los campos correctamente.', 'error');
+                    return;
+                }
+
+                const clientes = obtenerDatos(`users_${idUsuarioActual}_clients`);
+                const nombreCliente = clientes.find(c => c.id === idCliente)?.name || 'Cliente Desconocido';
+
+                const prestamos = obtenerDatos(`users_${idUsuarioActual}_loans`);
+                const nuevoPrestamo = {
+                    id: generarIdUnico(),
+                    clientId: idCliente,
+                    clientName: nombreCliente,
+                    amount: monto,
+                    interestRate: tasaInteres,
+                    weeks: semanas,
+                    totalAmount: montoTotal,
+                    weeklyPayment: pagoSemanal,
+                    status: 'PENDIENTE',
+                    createdAt: new Date().toISOString()
+                };
+                prestamos.push(nuevoPrestamo);
+                guardarDatos(`users_${idUsuarioActual}_loans`, prestamos);
+
+                const pagos = obtenerDatos(`users_${idUsuarioActual}_payments`);
+                for (let i = 0; i < semanas; i++) {
+                    const fechaVencimiento = new Date();
+                    fechaVencimiento.setDate(fechaVencimiento.getDate() + (i + 1) * 7); // Añade (i+1) semanas a la fecha actual
+                    pagos.push({
+                        id: generarIdUnico(),
+                        loanId: nuevoPrestamo.id,
+                        clientId: nuevoPrestamo.clientId,
+                        clientName: nuevoPrestamo.clientName,
+                        paymentNumber: i + 1,
+                        dueDate: fechaVencimiento.toISOString(),
+                        amountDue: pagoSemanal,
+                        amountPaid: 0,
+                        fine: 0,
+                        status: 'PENDIENTE',
+                        paymentDate: null
+                    });
+                }
+                guardarDatos(`users_${idUsuarioActual}_payments`, pagos);
+
+                mostrarModalMensaje('Éxito', 'Préstamo confirmado y pagos generados.', 'success');
+                formularioPrestamo.reset(); // Limpia el formulario
+                calcularDetallesPrestamo(); // Reinicia la visualización de los detalles
+                navegarA('pagos'); // Redirige a la sección de Pagos
+            });
+
+            cargarClientesParaPrestamo(); // Carga los clientes al renderizar la página
+            calcularDetallesPrestamo(); // Realiza el cálculo inicial al cargar la página
+        }
+
+        // Renderiza la sección de gestión de pagos
+        function renderizarPagos() {
+            const contenedorApp = document.getElementById('app-container');
+            contenedorApp.innerHTML = `
+                <div class="card p-4 shadow-lg w-100 mb-4">
+                    <h2 class="mb-4 text-primary">Gestión de Pagos</h2>
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <label for="selectorClientePago" class="form-label">Seleccionar Cliente</label>
+                            <select class="form-select rounded-pill" id="selectorClientePago">
+                                <option value="">-- Selecciona un cliente --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="selectorPrestamoPago" class="form-label">Seleccionar Préstamo</label>
+                            <select class="form-select rounded-pill" id="selectorPrestamoPago" disabled>
+                                <option value="">-- Selecciona un préstamo --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="detallesPagos" class="d-none">
+                        <h3 class="mb-3 text-secondary">Detalle de Pagos del Préstamo</h3>
+                        <div class="table-responsive mb-4">
+                            <table class="table table-hover table-striped rounded-3 overflow-hidden">
+                                <thead>
+                                    <tr>
+                                        <th># Abono</th>
+                                        <th>Fecha Venc.</th>
+                                        <th>Monto Debido</th>
+                                        <th>Monto Pagado</th>
+                                        <th>Multa</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="listaPagos">
+                                    </tbody>
+                            </table>
+                        </div>
+                        <button class="btn btn-indigo rounded-pill me-2" id="liquidarPrestamoBtn">Liquidar Préstamo</button>
+                    </div>
+                    <button class="btn btn-secondary mt-4 rounded-pill" onclick="navegarA('dashboard')">Volver al Menú</button>
+                </div>
+            `;
+
+            // Obtener referencias a los elementos del DOM
+            const selectorClientePago = document.getElementById('selectorClientePago');
+            const selectorPrestamoPago = document.getElementById('selectorPrestamoPago');
+            const detallesPagos = document.getElementById('detallesPagos');
+            const listaPagos = document.getElementById('listaPagos');
+            const liquidarPrestamoBtn = document.getElementById('liquidarPrestamoBtn');
+
+            let idPrestamoSeleccionadoActual = null; // Almacena el ID del préstamo seleccionado
+
+            // Carga los clientes en el selector de pagos
+            function cargarClientesParaPagos() {
+                const clientes = obtenerDatos(`users_${idUsuarioActual}_clients`);
+                selectorClientePago.innerHTML = '<option value="">-- Selecciona un cliente --</option>';
+                clientes.forEach(cliente => {
+                    const opcion = document.createElement('option');
+                    opcion.value = cliente.id;
+                    opcion.textContent = cliente.name;
+                    selectorClientePago.appendChild(opcion);
+                });
+            }
+
+            // Carga los préstamos del cliente seleccionado
+            function cargarPrestamosParaPagos() {
+                const idCliente = selectorClientePago.value;
+                selectorPrestamoPago.innerHTML = '<option value="">-- Selecciona un préstamo --</option>';
+                selectorPrestamoPago.disabled = true;
+                detallesPagos.classList.add('d-none');
+                listaPagos.innerHTML = '';
+
+                if (idCliente) {
+                    const prestamos = obtenerDatos(`users_${idUsuarioActual}_loans`).filter(prestamo => prestamo.clientId === idCliente);
+                    if (prestamos.length > 0) {
+                        selectorPrestamoPago.disabled = false;
+                        prestamos.forEach(prestamo => {
+                            const opcion = document.createElement('option');
+                            opcion.value = prestamo.id;
+                            opcion.textContent = `Monto: $${prestamo.amount.toFixed(2)} - Semanas: ${prestamo.weeks} - Estado: ${prestamo.status}`;
+                            selectorPrestamoPago.appendChild(opcion);
+                        });
+                    } else {
+                        mostrarModalMensaje('Información', 'No hay préstamos para este cliente.', 'info');
+                    }
+                }
+            }
+
+            // Carga y muestra los pagos para el préstamo seleccionado
+            function cargarPagosParaPrestamoSeleccionado() {
+                idPrestamoSeleccionadoActual = selectorPrestamoPago.value;
+                listaPagos.innerHTML = '';
+                detallesPagos.classList.add('d-none');
+
+                if (idPrestamoSeleccionadoActual) {
+                    let pagos = obtenerDatos(`users_${idUsuarioActual}_payments`).filter(p => p.loanId === idPrestamoSeleccionadoActual);
+                    pagos.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)); // Ordenar por fecha de vencimiento
+
+                    if (pagos.length === 0) {
+                        listaPagos.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No hay pagos registrados para este préstamo.</td></tr>';
+                        detallesPagos.classList.remove('d-none');
+                        return;
+                    }
+
+                    const hoy = new Date();
+                    hoy.setHours(0, 0, 0, 0); // Normaliza la fecha de hoy
+
+                    pagos.forEach(pago => {
+                        let multa = 0;
+                        let estado = pago.status;
+
+                        const fechaVencimiento = new Date(pago.dueDate);
+                        fechaVencimiento.setHours(0, 0, 0, 0); // Normaliza la fecha de vencimiento
+
+                        // Calcula multas y actualiza el estado
+                        if (estado === 'PENDIENTE' && fechaVencimiento < hoy) {
+                            const tiempoDiferencia = Math.abs(hoy.getTime() - fechaVencimiento.getTime());
+                            const diasDiferencia = Math.ceil(tiempoDiferencia / (1000 * 60 * 60 * 24));
+                            multa = diasDiferencia * 50; // $50 por día de atraso
+                            estado = 'ATRASADO';
+                        } else if (pago.amountPaid >= pago.amountDue) {
+                            estado = 'PAGADO';
+                        } else if (pago.amountPaid > 0 && pago.amountPaid < pago.amountDue) {
+                            estado = 'PENDIENTE'; // Pago parcial, sigue pendiente
+                        }
+
+                        // Actualiza el pago en localStorage si el estado/multa cambiaron (para consistencia de visualización)
+                        if (pago.fine !== multa || pago.status !== estado) {
+                            let todosLosPagos = obtenerDatos(`users_${idUsuarioActual}_payments`);
+                            const indice = todosLosPagos.findIndex(p => p.id === pago.id);
+                            if (indice !== -1) {
+                                todosLosPagos[indice].fine = multa;
+                                todosLosPagos[indice].status = estado;
+                                guardarDatos(`users_${idUsuarioActual}_payments`, todosLosPagos);
+                            }
+                        }
+
+                        const fila = listaPagos.insertRow();
+                        fila.innerHTML = `
+                            <td>${pago.paymentNumber}</td>
+                            <td>${new Date(pago.dueDate).toLocaleDateString()}</td>
+                            <td>$${pago.amountDue.toFixed(2)}</td>
+                            <td>$${pago.amountPaid.toFixed(2)}</td>
+                            <td class="text-danger fw-bold">$${multa.toFixed(2)}</td>
+                            <td><span class="status-badge status-${estado}">${estado}</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-primary me-2" onclick="marcarComoPagado('${pago.id}', ${pago.amountDue}, ${pago.amountPaid}, ${multa})" ${estado === 'PAGADO' ? 'disabled' : ''}>Marcar Pagado</button>
+                                <button class="btn btn-sm btn-info" onclick="generarRecibo('${pago.id}')">Recibo PDF</button>
+                            </td>
+                        `;
+                    });
+                    detallesPagos.classList.remove('d-none');
+
+                    // Deshabilita el botón de liquidar si todos los pagos están pagados
+                    const todosLosPagosEstanPagados = pagos.every(p => p.status === 'PAGADO');
+                    liquidarPrestamoBtn.disabled = todosLosPagosEstanPagados;
+                }
+            }
+
+            // Añade event listeners
+            selectorClientePago.addEventListener('change', cargarPrestamosParaPagos);
+            selectorPrestamoPago.addEventListener('change', cargarPagosParaPrestamoSeleccionado);
+            liquidarPrestamoBtn.addEventListener('click', liquidarPrestamo);
+
+            // Función global para marcar un pago como realizado
+            window.marcarComoPagado = (idPago, montoActualDebido, montoActualPagado, multa) => {
+                const montoAPagar = (montoActualDebido + multa - montoActualPagado).toFixed(2);
+
+                mostrarModalEntrada(
+                    'Registrar Pago',
+                    `Ingresa el monto pagado para este abono (Monto debido: $${montoAPagar}):`,
+                    'Monto pagado',
+                    async (entradaMontoPagado) => {
+                        const montoPagado = parseFloat(entradaMontoPagado);
+
+                        if (isNaN(montoPagado) || montoPagado <= 0) {
+                            mostrarModalMensaje('Error', 'Monto inválido. Por favor, ingresa un número positivo.', 'error');
+                            return;
+                        }
+
+                        let todosLosPagos = obtenerDatos(`users_${idUsuarioActual}_payments`);
+                        const indicePago = todosLosPagos.findIndex(p => p.id === idPago);
+                        if (indicePago === -1) {
+                            mostrarModalMensaje('Error', 'Pago no encontrado.', 'error');
+                            return;
+                        }
+                        let datosPago = todosLosPagos[indicePago];
+
+                        if (datosPago.status === 'PAGADO') {
+                            mostrarModalMensaje('Información', 'Este pago ya ha sido marcado como pagado.', 'info');
+                            return;
+                        }
+
+                        let nuevoMontoPagado = datosPago.amountPaid + montoPagado;
+                        let nuevoEstado = 'PENDIENTE';
+                        let montoRestante = datosPago.amountDue + datosPago.fine - nuevoMontoPagado;
+
+                        if (nuevoMontoPagado >= (datosPago.amountDue + datosPago.fine)) {
+                            nuevoEstado = 'PAGADO';
+                            montoRestante = 0;
+                        }
+
+                        datosPago.amountPaid = nuevoMontoPagado;
+                        datosPago.status = nuevoEstado;
+                        datosPago.paymentDate = new Date().toISOString();
+                        datosPago.fine = 0; // Reinicia la multa una vez que se realiza el pago
+
+                        todosLosPagos[indicePago] = datosPago;
+                        guardarDatos(`users_${idUsuarioActual}_payments`, todosLosPagos);
+                        mostrarModalMensaje('Éxito', 'Pago registrado exitosamente.', 'success');
+
+                        // Maneja el sobrepago: aplica el excedente a los siguientes pagos pendientes
+                        if (montoRestante < 0) {
+                            const sobrepago = Math.abs(montoRestante);
+                            await aplicarSobrepagoAPagosSiguientes(datosPago.loanId, datosPago.paymentNumber, sobrepago);
+                        }
+
+                        // Verifica si el préstamo ha sido liquidado
+                        verificarYLiquidarPrestamo(datosPago.loanId);
+                        cargarPagosParaPrestamoSeleccionado(); // Recarga los pagos después de la actualización
+                    },
+                    montoAPagar // Valor inicial para el modal de entrada
+                );
+            };
+
+            // Aplica el sobrepago a los siguientes pagos pendientes
+            async function aplicarSobrepagoAPagosSiguientes(idPrestamo, numeroPagoActual, sobrepago) {
+                let todosLosPagos = obtenerDatos(`users_${idUsuarioActual}_payments`);
+                const pagosPendientes = todosLosPagos
+                    .filter(p => p.loanId === idPrestamo && (p.status === 'PENDIENTE' || p.status === 'ATRASADO'))
+                    .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)); // Ordenar por fecha de vencimiento
+
+                let sobrepagoRestante = sobrepago;
+
+                for (let i = 0; i < pagosPendientes.length; i++) {
+                    if (sobrepagoRestante <= 0) break;
+
+                    let pago = pagosPendientes[i];
+                    const indicePagoEnTodos = todosLosPagos.findIndex(p => p.id === pago.id);
+
+                    const totalRestanteParaEstePago = pago.amountDue + pago.fine - pago.amountPaid;
+
+                    if (totalRestanteParaEstePago <= 0) continue; // Saltar si ya está totalmente pagado o sobrepagado
+
+                    if (sobrepagoRestante >= totalRestanteParaEstePago) {
+                        // El sobrepago cubre esta cuota completa (incluida su multa)
+                        pago.amountPaid += totalRestanteParaEstePago; // Añade el restante a amountPaid para marcar como totalmente pagado
+                        pago.status = 'PAGADO';
+                        pago.paymentDate = new Date().toISOString();
+                        pago.fine = 0; // Limpia la multa para este pago
+                        sobrepagoRestante -= totalRestanteParaEstePago;
+                    } else {
+                        // El sobrepago cubre parcialmente esta cuota
+                        pago.amountPaid += sobrepagoRestante;
+                        pago.status = 'PENDIENTE'; // Sigue pendiente, pero con más pagado
+                        // La multa permanece si no está totalmente cubierta
+                        sobrepagoRestante = 0;
+                    }
+                    todosLosPagos[indicePagoEnTodos] = pago; // Actualiza en el array principal
+                }
+                guardarDatos(`users_${idUsuarioActual}_payments`, todosLosPagos);
+            }
+
+            // Verifica y liquida un préstamo si todos sus pagos están completados
+            function verificarYLiquidarPrestamo(idPrestamo) {
+                const pagos = obtenerDatos(`users_${idUsuarioActual}_payments`).filter(p => p.loanId === idPrestamo);
+                const todosLosPagosEstanPagados = pagos.every(p => p.status === 'PAGADO');
+
+                if (todosLosPagosEstanPagados) {
+                    let prestamos = obtenerDatos(`users_${idUsuarioActual}_loans`);
+                    const indicePrestamo = prestamos.findIndex(l => l.id === idPrestamo);
+                    if (indicePrestamo !== -1) {
+                        prestamos[indicePrestamo].status = 'LIQUIDADO';
+                        guardarDatos(`users_${idUsuarioActual}_loans`, prestamos);
+                        mostrarModalMensaje('Éxito', '¡Préstamo liquidado exitosamente!', 'success');
+                    }
+                }
+            }
+
+            // Liquida un préstamo, marcando todos sus pagos pendientes como pagados
+            function liquidarPrestamo() {
+                mostrarModalConfirmacion(
+                    '¿Estás seguro de que quieres liquidar este préstamo? Esto marcará todos los pagos pendientes como pagados.',
+                    () => {
+                        let todosLosPagos = obtenerDatos(`users_${idUsuarioActual}_payments`);
+                        todosLosPagos = todosLosPagos.map(p => {
+                            if (p.loanId === idPrestamoSeleccionadoActual && (p.status === 'PENDIENTE' || p.status === 'ATRASADO')) {
+                                return {
+                                    ...p,
+                                    amountPaid: p.amountDue, // Marcar como totalmente pagado
+                                    status: 'PAGADO',
+                                    paymentDate: new Date().toISOString(),
+                                    fine: 0
+                                };
+                            }
+                            return p;
+                        });
+                        guardarDatos(`users_${idUsuarioActual}_payments`, todosLosPagos);
+
+                        let prestamos = obtenerDatos(`users_${idUsuarioActual}_loans`);
+                        const indicePrestamo = prestamos.findIndex(l => l.id === idPrestamoSeleccionadoActual);
+                        if (indicePrestamo !== -1) {
+                            prestamos[indicePrestamo].status = 'LIQUIDADO';
+                            guardarDatos(`users_${idUsuarioActual}_loans`, prestamos);
+                        }
+                        mostrarModalMensaje('Éxito', 'Préstamo liquidado exitosamente.', 'success');
+                        cargarPagosParaPrestamoSeleccionado(); // Recarga los pagos
+                    }
+                );
+            }
+
+            // Genera un recibo de pago en una nueva ventana para imprimir
+            window.generarRecibo = (idPago) => {
+                const pagos = obtenerDatos(`users_${idUsuarioActual}_payments`);
+                const pago = pagos.find(p => p.id === idPago);
+                if (!pago) {
+                    mostrarModalMensaje('Error', 'Pago no encontrado para generar recibo.', 'error');
+                    return;
+                }
+                const prestamos = obtenerDatos(`users_${idUsuarioActual}_loans`);
+                const prestamo = prestamos.find(l => l.id === pago.loanId);
+
+                if (!prestamo) {
+                    mostrarModalMensaje('Error', 'Préstamo asociado no encontrado.', 'error');
+                    return;
+                }
+
+                const contenidoRecibo = `
+                    <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ccc; border-radius: 8px; max-width: 600px; margin: 20px auto;">
+                        <h2 style="text-align: center; color: #333;">Recibo de Pago de Préstamo</h2>
+                        <hr style="border-top: 1px dashed #ccc; margin: 20px 0;">
+                        <p><strong>Cliente:</strong> ${pago.clientName}</p>
+                        <p><strong>ID de Préstamo:</strong> ${pago.loanId}</p>
+                        <p><strong>Monto Original del Préstamo:</strong> $${prestamo.amount.toFixed(2)}</p>
+                        <p><strong>Interés:</strong> ${prestamo.interestRate}%</p>
+                        <p><strong>Monto Total del Préstamo:</strong> $${prestamo.totalAmount.toFixed(2)}</p>
+                        <hr style="border-top: 1px dashed #ccc; margin: 20px 0;">
+                        <p><strong>Número de Pago:</strong> ${pago.paymentNumber}</p>
+                        <p><strong>Fecha de Vencimiento:</strong> ${new Date(pago.dueDate).toLocaleDateString()}</p>
+                        <p><strong>Monto Debido (Original):</strong> $${pago.amountDue.toFixed(2)}</p>
+                        <p><strong>Monto Pagado:</strong> $${pago.amountPaid.toFixed(2)}</p>
+                        <p><strong>Multa Aplicada:</strong> $${pago.fine.toFixed(2)}</p>
+                        <p><strong>Estado del Pago:</strong> ${pago.status}</p>
+                        <p><strong>Fecha de Pago:</strong> ${pago.paymentDate ? new Date(pago.paymentDate).toLocaleDateString() : 'N/A'}</p>
+                        <hr style="border-top: 1px dashed #ccc; margin: 20px 0;">
+                        <p style="text-align: center; font-size: 0.9em; color: #666;">Gracias por tu pago.</p>
+                    </div>
+                `;
+
+                const ventanaImpresion = window.open('', '', 'height=600,width=800');
+                ventanaImpresion.document.write('<html><head><title>Recibo de Pago</title>');
+                ventanaImpresion.document.write('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">'); // Incluir Bootstrap para la impresión
+                ventanaImpresion.document.write('</head><body>');
+                ventanaImpresion.document.write(contenidoRecibo);
+                ventanaImpresion.document.write('</body></html>');
+                ventanaImpresion.document.close();
+                ventanaImpresion.print();
+            };
+
+            cargarClientesParaPagos(); // Carga los clientes al iniciar la sección
+            // Carga inicial de préstamos si un cliente está preseleccionado (ej. desde navegación)
+            if (selectorClientePago.value) {
+                cargarPrestamosParaPagos();
+            }
+        }
+
+        // Renderiza la sección de detalle del cliente
+        function renderizarDetalleCliente() {
+            const contenedorApp = document.getElementById('app-container');
+            contenedorApp.innerHTML = `
+                <div class="card p-4 shadow-lg w-100 mb-4">
+                    <h2 class="mb-4 text-primary">Detalle del Cliente</h2>
+                    <div class="mb-4">
+                        <label for="selectorDetalleCliente" class="form-label">Seleccionar Cliente</label>
+                        <select class="form-select rounded-pill" id="selectorDetalleCliente">
+                            <option value="">-- Selecciona un cliente --</option>
+                        </select>
+                    </div>
+
+                    <div id="contenidoDetallesCliente" class="d-none">
+                        <div class="bg-light p-3 rounded-3 mb-3">
+                            <h4 class="text-secondary">Información del Cliente</h4>
+                            <p><strong>Nombre:</strong> <span id="nombreDetalleCliente"></span></p>
+                            <p><strong>Celular:</strong> <span id="celularDetalleCliente"></span></p>
+                            <p><strong>Dirección:</strong> <span id="direccionDetalleCliente"></span></p>
+                        </div>
+
+                        <div class="bg-light p-3 rounded-3 mb-3">
+                            <h4 class="text-secondary">Estado Actual de Préstamos</h4>
+                            <ul id="listaPrestamosActuales" class="list-unstyled"></ul>
+                            <p id="sinPrestamosActuales" class="text-muted d-none">No hay préstamos activos para este cliente.</p>
+                        </div>
+
+                        <div class="bg-light p-3 rounded-3 mb-3">
+                            <h4 class="text-secondary">Historial de Préstamos Anteriores</h4>
+                            <ul id="listaPrestamosAnteriores" class="list-unstyled"></ul>
+                            <p id="sinPrestamosAnteriores" class="text-muted d-none">No hay historial de préstamos liquidados.</p>
+                        </div>
+
+                        <div class="bg-light p-3 rounded-3 mb-3">
+                            <h4 class="text-secondary">Pagos Realizados</h4>
+                            <ul id="listaPagosRealizados" class="list-unstyled"></ul>
+                            <p id="sinPagosRealizados" class="text-muted d-none">No hay pagos registrados para este cliente.</p>
+                        </div>
+
+                        <div class="bg-light p-3 rounded-3 mb-3">
+                            <h4 class="text-secondary">Atrasos y Multas</h4>
+                            <p><strong>Total de Multas Acumuladas:</strong> <span class="text-danger fw-bold" id="mostrarMultaTotal">$0.00</span></p>
+                            <ul id="listaPagosAtrasados" class="list-unstyled"></ul>
+                            <p id="sinPagosAtrasados" class="text-muted d-none">No hay atrasos ni multas pendientes.</p>
+                        </div>
+
+                        <div class="bg-primary text-white p-3 rounded-3 text-center">
+                            <h4 class="mb-2">Saldo Restante Total</h4>
+                            <p class="fs-2 fw-bold" id="mostrarSaldoRestante">$0.00</p>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary mt-4 rounded-pill" onclick="navegarA('dashboard')">Volver al Menú</button>
+                </div>
+            `;
+
+            // Obtener referencias a los elementos del DOM
+            const selectorDetalleCliente = document.getElementById('selectorDetalleCliente');
+            const contenidoDetallesCliente = document.getElementById('contenidoDetallesCliente');
+            const nombreDetalleCliente = document.getElementById('nombreDetalleCliente');
+            const celularDetalleCliente = document.getElementById('celularDetalleCliente');
+            const direccionDetalleCliente = document.getElementById('direccionDetalleCliente');
+            const listaPrestamosActuales = document.getElementById('listaPrestamosActuales');
+            const sinPrestamosActuales = document.getElementById('sinPrestamosActuales');
+            const listaPrestamosAnteriores = document.getElementById('listaPrestamosAnteriores');
+            const sinPrestamosAnteriores = document.getElementById('sinPrestamosAnteriores');
+            const listaPagosRealizados = document.getElementById('listaPagosRealizados');
+            const sinPagosRealizados = document.getElementById('sinPagosRealizados');
+            const mostrarMultaTotal = document.getElementById('mostrarMultaTotal');
+            const listaPagosAtrasados = document.getElementById('listaPagosAtrasados');
+            const sinPagosAtrasados = document.getElementById('sinPagosAtrasados');
+            const mostrarSaldoRestante = document.getElementById('mostrarSaldoRestante');
+
+            // Carga los clientes en el selector de detalle de cliente
+            function cargarClientesParaDetalle() {
+                const clientes = obtenerDatos(`users_${idUsuarioActual}_clients`);
+                selectorDetalleCliente.innerHTML = '<option value="">-- Selecciona un cliente --</option>';
+                clientes.forEach(cliente => {
+                    const opcion = document.createElement('option');
+                    opcion.value = cliente.id;
+                    opcion.textContent = cliente.name;
+                    selectorDetalleCliente.appendChild(opcion);
+                });
+            }
+
+            // Muestra los detalles del cliente seleccionado
+            function mostrarDetallesCliente() {
+                const idCliente = selectorDetalleCliente.value;
+                if (!idCliente) {
+                    contenidoDetallesCliente.classList.add('d-none');
+                    return;
+                }
+
+                contenidoDetallesCliente.classList.remove('d-none');
+                const clientes = obtenerDatos(`users_${idUsuarioActual}_clients`);
+                const clienteActual = clientes.find(c => c.id === idCliente);
+
+                if (!clienteActual) {
+                    mostrarModalMensaje('Error', 'Cliente no encontrado.', 'error');
+                    contenidoDetallesCliente.classList.add('d-none');
+                    return;
+                }
+
+                nombreDetalleCliente.textContent = clienteActual.name;
+                celularDetalleCliente.textContent = clienteActual.phone;
+                direccionDetalleCliente.textContent = clienteActual.address;
+
+                const prestamos = obtenerDatos(`users_${idUsuarioActual}_loans`).filter(l => l.clientId === idCliente);
+                const pagos = obtenerDatos(`users_${idUsuarioActual}_payments`).filter(p => p.clientId === idCliente);
+
+                // Calcula multas y actualiza el estado para la visualización
+                const hoy = new Date();
+                hoy.setHours(0, 0, 0, 0);
+                const pagosActualizados = pagos.map(p => {
+                    let multa = 0;
+                    let estado = p.status;
+                    const fechaVencimiento = new Date(p.dueDate);
+                    fechaVencimiento.setHours(0, 0, 0, 0);
+
+                    if (estado === 'PENDIENTE' && fechaVencimiento < hoy) {
+                        const tiempoDiferencia = Math.abs(hoy.getTime() - fechaVencimiento.getTime());
+                        const diasDiferencia = Math.ceil(tiempoDiferencia / (1000 * 60 * 60 * 24));
+                        multa = diasDiferencia * 50;
+                        estado = 'ATRASADO';
+                    } else if (p.amountPaid >= p.amountDue) {
+                        estado = 'PAGADO';
+                    } else if (p.amountPaid > 0 && p.amountPaid < p.amountDue) {
+                        estado = 'PENDIENTE';
+                    }
+                    return { ...p, fine: multa, status: estado };
+                });
+
+                // Préstamos Actuales
+                listaPrestamosActuales.innerHTML = '';
+                const prestamosActivos = prestamos.filter(l => l.status !== 'LIQUIDADO');
+                if (prestamosActivos.length === 0) {
+                    sinPrestamosActuales.classList.remove('d-none');
+                } else {
+                    sinPrestamosActuales.classList.add('d-none');
+                    prestamosActivos.forEach(prestamo => {
+                        const li = document.createElement('li');
+                        li.textContent = `Préstamo de $${prestamo.amount.toFixed(2)} (Total: $${prestamo.totalAmount.toFixed(2)}) - Estado: ${prestamo.status}`;
+                        listaPrestamosActuales.appendChild(li);
+                    });
+                }
+
+                // Historial de Préstamos Anteriores
+                listaPrestamosAnteriores.innerHTML = '';
+                const prestamosLiquidados = prestamos.filter(l => l.status === 'LIQUIDADO');
+                if (prestamosLiquidados.length === 0) {
+                    sinPrestamosAnteriores.classList.remove('d-none');
+                } else {
+                    sinPrestamosAnteriores.classList.add('d-none');
+                    prestamosLiquidados.forEach(prestamo => {
+                        const li = document.createElement('li');
+                        li.textContent = `Préstamo de $${prestamo.amount.toFixed(2)} (Total: $${prestamo.totalAmount.toFixed(2)}) - LIQUIDADO`;
+                        listaPrestamosAnteriores.appendChild(li);
+                    });
+                }
+
+                // Pagos Realizados
+                listaPagosRealizados.innerHTML = '';
+                const pagosRealizados = pagosActualizados.filter(p => p.status === 'PAGADO');
+                if (pagosRealizados.length === 0) {
+                    sinPagosRealizados.classList.remove('d-none');
+                } else {
+                    sinPagosRealizados.classList.add('d-none');
+                    pagosRealizados.forEach(pago => {
+                        const li = document.createElement('li');
+                        li.textContent = `Abono #${pago.paymentNumber} de $${pago.amountPaid.toFixed(2)} para préstamo ${pago.loanId.substring(0, 6)}... (Fecha: ${new Date(pago.paymentDate).toLocaleDateString()})`;
+                        listaPagosRealizados.appendChild(li);
+                    });
+                }
+
+                // Atrasos y Multas Totales
+                const multaTotal = pagosActualizados.reduce((sum, p) => sum + p.fine, 0);
+                mostrarMultaTotal.textContent = `$${multaTotal.toFixed(2)}`;
+
+                listaPagosAtrasados.innerHTML = '';
+                const pagosAtrasados = pagosActualizados.filter(p => p.status === 'ATRASADO');
+                if (pagosAtrasados.length === 0) {
+                    sinPagosAtrasados.classList.remove('d-none');
+                } else {
+                    sinPagosAtrasados.classList.add('d-none');
+                    pagosAtrasados.forEach(pago => {
+                        const li = document.createElement('li');
+                        li.textContent = `Abono #${pago.paymentNumber} de $${pago.amountDue.toFixed(2)} (Vencimiento: ${new Date(pago.dueDate).toLocaleDateString()}) - Multa: $${pago.fine.toFixed(2)}`;
+                        listaPagosAtrasados.appendChild(li);
+                    });
+                }
+
+                // Saldo Restante Total
+                let saldoRestanteTotal = 0;
+                prestamos.forEach(prestamo => {
+                    if (prestamo.status !== 'LIQUIDADO') {
+                        const pagosDelPrestamo = pagosActualizados.filter(p => p.loanId === prestamo.id);
+                        const totalDebidoDelPrestamo = pagosDelPrestamo.reduce((sum, p) => sum + p.amountDue + p.fine, 0);
+                        const totalPagadoDelPrestamo = pagosDelPrestamo.reduce((sum, p) => sum + p.amountPaid, 0);
+                        saldoRestanteTotal += (totalDebidoDelPrestamo - totalPagadoDelPrestamo);
+                    }
+                });
+                mostrarSaldoRestante.textContent = `$${saldoRestanteTotal.toFixed(2)}`;
+            }
+
+            selectorDetalleCliente.addEventListener('change', mostrarDetallesCliente);
+            cargarClientesParaDetalle(); // Carga los clientes al iniciar la sección
+        }
+
+        // --- Inicialización de la Aplicación ---
+        // Se ejecuta cuando el DOM está completamente cargado
+        document.addEventListener('DOMContentLoaded', () => {
+            renderizarApp(); // Inicia la aplicación mostrando la pantalla de carga y luego el login
+        });
+    </script>
+</body>
+</html>
