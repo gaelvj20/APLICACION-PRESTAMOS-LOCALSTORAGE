@@ -6,7 +6,7 @@
     <title>Aplicación de Préstamos</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <style>
-        
+        /* Estilos generales del cuerpo */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f8f9fa;
@@ -14,53 +14,75 @@
             display: flex;
             flex-direction: column;
         }
+
+        /* Contenedor principal de la aplicación */
         .container-fluid {
             flex-grow: 1;
             padding: 20px;
         }
+
+        /* Estilos de las tarjetas (cards) */
         .card {
             border-radius: 1rem;
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
         }
+
+        /* Estilos de los botones */
         .btn-primary, .btn-success, .btn-info, .btn-warning, .btn-danger, .btn-secondary, .btn-indigo {
             border-radius: 0.5rem;
             transition: all 0.2s ease-in-out;
             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
         }
+
+        /* Efecto hover para los botones */
         .btn-primary:hover, .btn-success:hover, .btn-info:hover, .btn-warning:hover, .btn-danger:hover, .btn-secondary:hover, .btn-indigo:hover {
             transform: translateY(-2px);
             box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
         }
+
+        /* Color personalizado para el botón "Liquidar" */
         .btn-indigo {
-            background-color: #6610f2; /* Color personalizado para Liquidar */
+            background-color: #6610f2;
             border-color: #6610f2;
             color: white;
         }
+
+        /* Efecto hover para el botón "Liquidar" */
         .btn-indigo:hover {
             background-color: #560ce8;
             border-color: #560ce8;
         }
+
+        /* Estilos de los campos de formulario y selectores */
         .form-control, .form-select {
             border-radius: 0.5rem;
         }
+
+        /* Estilos de la tabla */
         .table {
             border-radius: 1rem;
             overflow: hidden; /* Asegura que los bordes redondeados se apliquen a la tabla */
         }
+
+        /* Estilos del encabezado de la tabla */
         .table thead {
             background-color: #e9ecef;
         }
+
+        /* Estilos de las insignias de estado */
         .status-badge {
             padding: 0.3em 0.6em;
             border-radius: 1rem;
             font-size: 0.75em;
             font-weight: bold;
         }
+
+        /* Colores de las insignias de estado */
         .status-PENDIENTE { background-color: #fff3cd; color: #664d03; }
         .status-ATRASADO { background-color: #f8d7da; color: #842029; }
         .status-LIQUIDADO, .status-PAGADO { background-color: #d1e7dd; color: #0f5132; }
 
-        /* Modales */
+        /* Estilos de los modales */
         .modal-backdrop {
             position: fixed;
             top: 0;
@@ -103,8 +125,10 @@
         }
     </style>
 </head>
+
+
 <body>
-    <!-- 📦 Módulo de Backup y Restauración -->
+      <!-- 📦 Módulo de Backup y Restauración -->
 <div class="card mt-4">
   <div class="card-header">
     🗂️ Gestión de Respaldo
@@ -118,6 +142,52 @@
     </label>
   </div>
 </div>
+
+    <div class="container-fluid">
+        <div id="contenedor-app" class="d-flex flex-column align-items-center justify-content-center min-vh-100">
+            </div>
+    </div>
+
+    <div id="modal-mensaje" class="custom-modal d-none">
+        <div class="custom-modal-header">
+            <h5 id="titulo-modal-mensaje">Mensaje</h5>
+            <button type="button" class="btn-close" onclick="cerrarModalMensaje()"></button>
+        </div>
+        <div class="custom-modal-body">
+            <p id="cuerpo-modal-mensaje"></p>
+        </div>
+        <div class="custom-modal-footer">
+            <button type="button" class="btn btn-primary" onclick="cerrarModalMensaje()">Cerrar</button>
+        </div>
+    </div>
+    <div id="modal-confirmacion" class="custom-modal d-none">
+        <div class="custom-modal-header">
+            <h5>Confirmación</h5>
+            <button type="button" class="btn-close" onclick="cerrarModalConfirmacion()"></button>
+        </div>
+        <div class="custom-modal-body">
+            <p id="cuerpo-modal-confirmacion"></p>
+        </div>
+        <div class="custom-modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="cerrarModalConfirmacion()">No</button>
+            <button type="button" class="btn btn-primary" id="boton-confirmar">Sí</button>
+        </div>
+    </div>
+    <div id="modal-entrada" class="custom-modal d-none">
+        <div class="custom-modal-header">
+            <h5 id="titulo-modal-entrada">Entrada de Datos</h5>
+            <button type="button" class="btn-close" onclick="cerrarModalEntrada()"></button>
+        </div>
+        <div class="custom-modal-body">
+            <p id="mensaje-modal-entrada"></p>
+            <input type="number" step="0.01" class="form-control" id="valor-modal-entrada" placeholder="Ingrese el valor">
+        </div>
+        <div class="custom-modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="cerrarModalEntrada()">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="boton-confirmar-entrada">Confirmar</button>
+        </div>
+    </div>
+    <div id="fondo-modal" class="modal-backdrop d-none"></div>
 
 <script>
   // ✅ Descargar backup del localStorage como archivo JSON
@@ -167,108 +237,18 @@
   }
 </script>
 
-    <div class="container-fluid">
-        <div id="app-container" class="d-flex flex-column align-items-center justify-content-center min-vh-100">
-            </div>
-    </div>
-
-    <div id="messageModal" class="custom-modal d-none">
-        <div class="custom-modal-header">
-            <h5 id="messageModalTitle">Mensaje</h5>
-            <button type="button" class="btn-close" onclick="cerrarModalMensaje()"></button>
-        </div>
-        <div class="custom-modal-body">
-            <p id="messageModalBody"></p>
-        </div>
-        <div class="custom-modal-footer">
-            <button type="button" class="btn btn-primary" onclick="cerrarModalMensaje()">Cerrar</button>
-        </div>
-    </div>
-    <div id="confirmationModal" class="custom-modal d-none">
-        <div class="custom-modal-header">
-            <h5>Confirmación</h5>
-            <button type="button" class="btn-close" onclick="cerrarModalConfirmacion()"></button>
-        </div>
-        <div class="custom-modal-body">
-            <p id="confirmationModalBody"></p>
-        </div>
-        <div class="custom-modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="cerrarModalConfirmacion()">No</button>
-            <button type="button" class="btn btn-primary" id="confirmButton">Sí</button>
-        </div>
-    </div>
-    <div id="inputModal" class="custom-modal d-none">
-        <div class="custom-modal-header">
-            <h5 id="inputModalTitle">Entrada de Datos</h5>
-            <button type="button" class="btn-close" onclick="cerrarModalEntrada()"></button>
-        </div>
-        <div class="custom-modal-body">
-            <p id="inputModalMessage"></p>
-            <input type="number" step="0.01" class="form-control" id="inputModalValue" placeholder="Ingrese el valor">
-        </div>
-        <div class="custom-modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="cerrarModalEntrada()">Cancelar</button>
-            <button type="button" class="btn btn-primary" id="inputConfirmButton">Confirmar</button>
-        </div>
-    </div>
-    <div id="modalBackdrop" class="modal-backdrop d-none"></div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-
     <script>
-
-         // ✅ Descargar backup del localStorage como archivo JSON
-  function descargarBackup() {
-    const datos = { ...localStorage };
-    datos.__backup_version__ = "1.0"; // Versión del formato
-
-    const nombreArchivo = `backup_app_prestamos_${new Date().toISOString().slice(0, 10)}.json`;
-    const enlace = document.createElement('a');
-    enlace.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(datos));
-    enlace.download = nombreArchivo;
-    enlace.click();
-  }
-
-  // ✅ Restaurar backup desde archivo .json con validación y confirmación
-  function restaurarBackup(event) {
-    const archivo = event.target.files[0];
-    if (!archivo) return;
-
-    const lector = new FileReader();
-    lector.onload = function (e) {
-      try {
-        const datosBackup = JSON.parse(e.target.result);
-
-        if (!datosBackup.__backup_version__) {
-          return alert("❌ Este archivo no es un backup válido.");
-        }
-
-        const confirmar = confirm(`📦 Backup versión ${datosBackup.__backup_version__} detectado.\n¿Deseas sobrescribir los datos actuales?`);
-        if (!confirmar) return;
-
-        delete datosBackup.__backup_version__; // Eliminar clave antes de restaurar
-
-        for (const clave in datosBackup) {
-          localStorage.setItem(clave, datosBackup[clave]);
-        }
-
-        alert("✅ Datos restaurados correctamente. Recargando página...");
-        location.reload();
-
-      } catch (error) {
-        alert("❌ Error al restaurar: el archivo no es válido.");
-      }
-    };
-
-    lector.readAsText(archivo);
-  }
         // --- Variables Globales y Estado de la Aplicación ---
         let estaAutenticado = false;
         let idUsuarioActual = null; // Para simular el ID de usuario en localStorage
-        let paginaActual = 'login'; // Página actual: 'login', 'dashboard', 'clientes', 'prestamos', 'pagos', 'detalleCliente'
+        let paginaActual = 'login'; // Página actual: 'login', 'dashboard', 'clientes', 'prestamos', 'pagos', 'detalleCliente', 'editarPrestamos'
 
         // --- Funciones de Utilidad para localStorage (Base de Datos Sencilla) ---
-        // Genera un ID único (UUID v4 simplificado)
+        /**
+         * Genera un ID único (UUID v4 simplificado).
+         * @returns {string} Un ID único.
+         */
         function generarIdUnico() {
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
                 var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
@@ -276,13 +256,21 @@
             });
         }
 
-        // Obtiene datos del localStorage por clave
+        /**
+         * Obtiene datos del localStorage por clave.
+         * @param {string} clave - La clave para obtener los datos.
+         * @returns {Array} Un array de datos parseado desde JSON, o un array vacío si no existe.
+         */
         function obtenerDatos(clave) {
             const datos = localStorage.getItem(clave);
             return datos ? JSON.parse(datos) : [];
         }
 
-        // Guarda datos en localStorage por clave
+        /**
+         * Guarda datos en localStorage por clave.
+         * @param {string} clave - La clave para guardar los datos.
+         * @param {Array} datos - El array de datos a guardar (se serializa a JSON).
+         */
         function guardarDatos(clave, datos) {
             localStorage.setItem(clave, JSON.stringify(datos));
         }
@@ -291,16 +279,25 @@
         let callbackConfirmacionActual = null; // Callback para el modal de confirmación
         let callbackEntradaActual = null; // Callback para el modal de entrada
 
-        // Muestra un modal de mensaje
+        /**
+         * Muestra un modal de mensaje con un título, mensaje y tipo (para color).
+         * @param {string} titulo - El título del modal.
+         * @param {string} mensaje - El mensaje a mostrar en el modal.
+         * @param {'info'|'success'|'error'|'warning'} tipo - El tipo de mensaje para estilizar el encabezado.
+         */
         function mostrarModalMensaje(titulo, mensaje, tipo = 'info') {
-            const modal = document.getElementById('messageModal');
-            const fondo = document.getElementById('modalBackdrop');
-            document.getElementById('messageModalTitle').textContent = titulo;
-            document.getElementById('messageModalBody').textContent = mensaje;
+            const modal = document.getElementById('modal-mensaje');
+            const fondo = document.getElementById('fondo-modal');
+            document.getElementById('titulo-modal-mensaje').textContent = titulo;
+            document.getElementById('cuerpo-modal-mensaje').textContent = mensaje;
 
             // Elimina clases de tipo anteriores y añade la nueva
             modal.classList.remove('bg-success', 'bg-danger', 'bg-info', 'bg-warning');
-            modal.querySelector('.custom-modal-header').classList.remove('bg-success', 'bg-danger', 'bg-info', 'bg-warning'); // Asegura que el encabezado también cambie de color
+            // Asumiendo que el header del modal tiene una clase para el color de fondo
+            const header = modal.querySelector('.custom-modal-header');
+            if (header) {
+                header.classList.remove('bg-success', 'bg-danger', 'bg-info', 'bg-warning');
+            }
 
             let claseColorEncabezado = '';
             switch (tipo) {
@@ -308,25 +305,33 @@
                 case 'error': claseColorEncabezado = 'bg-danger'; break;
                 case 'info': default: claseColorEncabezado = 'bg-info'; break;
             }
-            modal.querySelector('.custom-modal-header').classList.add(claseColorEncabezado);
+            if (header) {
+                header.classList.add(claseColorEncabezado);
+            }
 
             modal.classList.remove('d-none');
             fondo.classList.remove('d-none');
         }
 
-        // Cierra el modal de mensaje
+        /**
+         * Cierra el modal de mensaje.
+         */
         function cerrarModalMensaje() {
-            document.getElementById('messageModal').classList.add('d-none');
-            document.getElementById('modalBackdrop').classList.add('d-none');
+            document.getElementById('modal-mensaje').classList.add('d-none');
+            document.getElementById('fondo-modal').classList.add('d-none');
         }
 
-        // Muestra un modal de confirmación
+        /**
+         * Muestra un modal de confirmación con un mensaje y un callback para la acción de confirmar.
+         * @param {string} mensaje - El mensaje de confirmación.
+         * @param {function} alConfirmar - La función a ejecutar si el usuario confirma.
+         */
         function mostrarModalConfirmacion(mensaje, alConfirmar) {
-            const modal = document.getElementById('confirmationModal');
-            const fondo = document.getElementById('modalBackdrop');
-            document.getElementById('confirmationModalBody').textContent = mensaje;
+            const modal = document.getElementById('modal-confirmacion');
+            const fondo = document.getElementById('fondo-modal');
+            document.getElementById('cuerpo-modal-confirmacion').textContent = mensaje;
             callbackConfirmacionActual = alConfirmar;
-            document.getElementById('confirmButton').onclick = () => {
+            document.getElementById('boton-confirmar').onclick = () => {
                 callbackConfirmacionActual();
                 cerrarModalConfirmacion();
             };
@@ -334,24 +339,33 @@
             fondo.classList.remove('d-none');
         }
 
-        // Cierra el modal de confirmación
+        /**
+         * Cierra el modal de confirmación.
+         */
         function cerrarModalConfirmacion() {
-            document.getElementById('confirmationModal').classList.add('d-none');
-            document.getElementById('modalBackdrop').classList.add('d-none');
+            document.getElementById('modal-confirmacion').classList.add('d-none');
+            document.getElementById('fondo-modal').classList.add('d-none');
             callbackConfirmacionActual = null;
         }
 
-        // Muestra un modal de entrada de datos
+        /**
+         * Muestra un modal de entrada de datos con un título, mensaje, marcador de posición y un callback.
+         * @param {string} titulo - El título del modal.
+         * @param {string} mensaje - El mensaje que acompaña al campo de entrada.
+         * @param {string} marcadorPosicion - El texto del marcador de posición del campo de entrada.
+         * @param {function} alConfirmar - La función a ejecutar con el valor ingresado si el usuario confirma.
+         * @param {string} [valorInicial=''] - El valor inicial del campo de entrada.
+         */
         function mostrarModalEntrada(titulo, mensaje, marcadorPosicion, alConfirmar, valorInicial = '') {
-            const modal = document.getElementById('inputModal');
-            const fondo = document.getElementById('modalBackdrop');
-            document.getElementById('inputModalTitle').textContent = titulo;
-            document.getElementById('inputModalMessage').textContent = mensaje;
-            const campoEntrada = document.getElementById('inputModalValue');
+            const modal = document.getElementById('modal-entrada');
+            const fondo = document.getElementById('fondo-modal');
+            document.getElementById('titulo-modal-entrada').textContent = titulo;
+            document.getElementById('mensaje-modal-entrada').textContent = mensaje;
+            const campoEntrada = document.getElementById('valor-modal-entrada');
             campoEntrada.placeholder = marcadorPosicion;
             campoEntrada.value = valorInicial;
             callbackEntradaActual = alConfirmar;
-            document.getElementById('inputConfirmButton').onclick = () => {
+            document.getElementById('boton-confirmar-entrada').onclick = () => {
                 callbackEntradaActual(campoEntrada.value);
                 cerrarModalEntrada();
             };
@@ -359,15 +373,20 @@
             fondo.classList.remove('d-none');
         }
 
-        // Cierra el modal de entrada de datos
+        /**
+         * Cierra el modal de entrada de datos.
+         */
         function cerrarModalEntrada() {
-            document.getElementById('inputModal').classList.add('d-none');
-            document.getElementById('modalBackdrop').classList.add('d-none');
+            document.getElementById('modal-entrada').classList.add('d-none');
+            document.getElementById('fondo-modal').classList.add('d-none');
             callbackEntradaActual = null;
         }
 
         // --- Lógica de Autenticación ---
-        // Verifica el estado de autenticación del usuario
+        /**
+         * Verifica el estado de autenticación del usuario actual en localStorage.
+         * Redirige al dashboard si está autenticado, o al login si no lo está.
+         */
         function verificarAutenticacion() {
             const usuarioActual = localStorage.getItem('currentUser');
             if (usuarioActual) {
@@ -381,7 +400,10 @@
             }
         }
 
-        // Maneja el inicio de sesión
+        /**
+         * Maneja el evento de inicio de sesión.
+         * @param {Event} evento - El evento de envío del formulario.
+         */
         function manejarInicioSesion(evento) {
             evento.preventDefault();
             const nombreUsuario = document.getElementById('loginUsername').value;
@@ -401,7 +423,10 @@
             }
         }
 
-        // Maneja el registro de un nuevo usuario
+        /**
+         * Maneja el evento de registro de un nuevo usuario.
+         * @param {Event} evento - El evento de envío del formulario.
+         */
         function manejarRegistro(evento) {
             evento.preventDefault();
             const nombreUsuario = document.getElementById('registerUsername').value;
@@ -417,11 +442,13 @@
             usuarios.push(nuevoUsuario);
             guardarDatos('users', usuarios);
             mostrarModalMensaje('Éxito', 'Registro exitoso. Por favor, inicia sesión.', 'success');
-            document.getElementById('registerForm').reset();
+            document.getElementById('formulario-registro').reset();
             mostrarFormularioInicioSesion(); // Volver al formulario de login
         }
 
-        // Maneja el cierre de sesión
+        /**
+         * Maneja el cierre de sesión del usuario actual.
+         */
         function manejarCierreSesion() {
             localStorage.removeItem('currentUser');
             estaAutenticado = false;
@@ -430,29 +457,38 @@
             navegarA('login');
         }
 
-        // Muestra el formulario de inicio de sesión
+        /**
+         * Muestra el formulario de inicio de sesión y oculta el de registro.
+         */
         function mostrarFormularioInicioSesion() {
-            document.getElementById('loginSection').classList.remove('d-none');
-            document.getElementById('registerSection').classList.add('d-none');
+            document.getElementById('seccion-login').classList.remove('d-none');
+            document.getElementById('seccion-registro').classList.add('d-none');
         }
 
-        // Muestra el formulario de registro
+        /**
+         * Muestra el formulario de registro y oculta el de inicio de sesión.
+         */
         function mostrarFormularioRegistro() {
-            document.getElementById('loginSection').classList.add('d-none');
-            document.getElementById('registerSection').classList.remove('d-none');
+            document.getElementById('seccion-login').classList.add('d-none');
+            document.getElementById('seccion-registro').classList.remove('d-none');
         }
 
         // --- Navegación entre Secciones ---
-        // Cambia la página actual y vuelve a renderizar la aplicación
+        /**
+         * Cambia la página actual de la aplicación y vuelve a renderizar la interfaz.
+         * @param {string} pagina - El nombre de la página a la que navegar.
+         */
         function navegarA(pagina) {
             paginaActual = pagina;
             renderizarApp();
         }
 
         // --- Renderizado de Vistas ---
-        // Renderiza la sección de la aplicación según la página actual
+        /**
+         * Renderiza la sección de la aplicación según la página actual.
+         */
         function renderizarApp() {
-            const contenedorApp = document.getElementById('app-container');
+            const contenedorApp = document.getElementById('contenedor-app');
             contenedorApp.innerHTML = ''; // Limpiar el contenido anterior
 
             if (paginaActual === 'loading') {
@@ -492,20 +528,25 @@
                 case 'detalleCliente':
                     renderizarDetalleCliente();
                     break;
+                case 'editarPrestamos': // Nueva sección para editar préstamos
+                    renderizarEditarPrestamos();
+                    break;
                 default:
                     renderizarLogin();
                     break;
             }
         }
 
-        // Renderiza la sección de inicio de sesión/registro
+        /**
+         * Renderiza la sección de inicio de sesión y registro.
+         */
         function renderizarLogin() {
-            const contenedorApp = document.getElementById('app-container');
+            const contenedorApp = document.getElementById('contenedor-app');
             contenedorApp.innerHTML = `
                 <div class="card p-4 shadow-lg" style="max-width: 400px; width: 100%;">
                     <h2 class="text-center mb-4 text-primary">Iniciar Sesión</h2>
-                    <div id="loginSection">
-                        <form id="loginForm">
+                    <div id="seccion-login">
+                        <form id="formulario-login">
                             <div class="mb-3">
                                 <label for="loginUsername" class="form-label">Usuario</label>
                                 <input type="text" class="form-control rounded-pill" id="loginUsername" required>
@@ -517,12 +558,12 @@
                             <button type="submit" class="btn btn-primary w-100 rounded-pill">Iniciar Sesión</button>
                         </form>
                         <p class="text-center mt-3">
-                            ¿No tienes una cuenta? <a href="#" id="showRegisterLink">Regístrate aquí</a>
+                            ¿No tienes una cuenta? <a href="#" id="enlace-mostrar-registro">Regístrate aquí</a>
                         </p>
                     </div>
-                    <div id="registerSection" class="d-none">
+                    <div id="seccion-registro" class="d-none">
                         <h3 class="text-center mb-4 text-primary">Registro de Usuario</h3>
-                        <form id="registerForm">
+                        <form id="formulario-registro">
                             <div class="mb-3">
                                 <label for="registerUsername" class="form-label">Usuario</label>
                                 <input type="text" class="form-control rounded-pill" id="registerUsername" required>
@@ -534,21 +575,23 @@
                             <button type="submit" class="btn btn-success w-100 rounded-pill">Registrarse</button>
                         </form>
                         <p class="text-center mt-3">
-                            ¿Ya tienes una cuenta? <a href="#" id="showLoginLink">Inicia Sesión</a>
+                            ¿Ya tienes una cuenta? <a href="#" id="enlace-mostrar-login">Inicia Sesión</a>
                         </p>
                     </div>
                 </div>
             `;
             // Añade los event listeners después de que los elementos se han renderizado
-            document.getElementById('loginForm').addEventListener('submit', manejarInicioSesion);
-            document.getElementById('registerForm').addEventListener('submit', manejarRegistro);
-            document.getElementById('showRegisterLink').addEventListener('click', (e) => { e.preventDefault(); mostrarFormularioRegistro(); });
-            document.getElementById('showLoginLink').addEventListener('click', (e) => { e.preventDefault(); mostrarFormularioInicioSesion(); });
+            document.getElementById('formulario-login').addEventListener('submit', manejarInicioSesion);
+            document.getElementById('formulario-registro').addEventListener('submit', manejarRegistro);
+            document.getElementById('enlace-mostrar-registro').addEventListener('click', (e) => { e.preventDefault(); mostrarFormularioRegistro(); });
+            document.getElementById('enlace-mostrar-login').addEventListener('click', (e) => { e.preventDefault(); mostrarFormularioInicioSesion(); });
         }
 
-        // Renderiza la sección del panel de control (dashboard)
+        /**
+         * Renderiza la sección del panel de control (dashboard).
+         */
         function renderizarDashboard() {
-            const contenedorApp = document.getElementById('app-container');
+            const contenedorApp = document.getElementById('contenedor-app');
             contenedorApp.innerHTML = `
                 <div class="card p-5 shadow-lg text-center" style="max-width: 800px; width: 100%;">
                     <h2 class="mb-5 text-primary">Menú Principal</h2>
@@ -574,34 +617,41 @@
                                 📊 <span class="mt-2">Detalle del Cliente</span>
                             </button>
                         </div>
+                        <div class="col-md-6">
+                            <button class="btn btn-secondary w-100 p-4 fs-4 d-flex flex-column align-items-center" onclick="navegarA('editarPrestamos')">
+                                ✏️ <span class="mt-2">Editar Préstamos</span>
+                            </button>
+                        </div>
                     </div>
                     <button class="btn btn-danger mt-5 px-5 py-3 rounded-pill" onclick="manejarCierreSesion()">Cerrar Sesión</button>
                 </div>
             `;
         }
 
-        // Renderiza la sección de gestión de clientes
+        /**
+         * Renderiza la sección de gestión de clientes.
+         */
         function renderizarClientes() {
-            const contenedorApp = document.getElementById('app-container');
+            const contenedorApp = document.getElementById('contenedor-app');
             contenedorApp.innerHTML = `
                 <div class="card p-4 shadow-lg w-100 mb-4">
                     <h2 class="mb-4 text-primary">Gestión de Clientes</h2>
-                    <form id="formularioCliente" class="mb-4">
-                        <input type="hidden" id="idCliente">
+                    <form id="formulario-cliente" class="mb-4">
+                        <input type="hidden" id="id-cliente">
                         <div class="mb-3">
-                            <label for="nombreCliente" class="form-label">Nombre</label>
-                            <input type="text" class="form-control rounded-pill" id="nombreCliente" required>
+                            <label for="nombre-cliente" class="form-label">Nombre</label>
+                            <input type="text" class="form-control rounded-pill" id="nombre-cliente" required>
                         </div>
                         <div class="mb-3">
-                            <label for="celularCliente" class="form-label">Celular</label>
-                            <input type="text" class="form-control rounded-pill" id="celularCliente" required>
+                            <label for="celular-cliente" class="form-label">Celular</label>
+                            <input type="text" class="form-control rounded-pill" id="celular-cliente" required>
                         </div>
                         <div class="mb-3">
-                            <label for="direccionCliente" class="form-label">Dirección</label>
-                            <input type="text" class="form-control rounded-pill" id="direccionCliente">
+                            <label for="direccion-cliente" class="form-label">Dirección</label>
+                            <input type="text" class="form-control rounded-pill" id="direccion-cliente">
                         </div>
-                        <button type="submit" class="btn btn-primary rounded-pill" id="guardarClienteBtn">Añadir Cliente</button>
-                        <button type="button" class="btn btn-secondary rounded-pill d-none" id="cancelarEdicionBtn">Cancelar Edición</button>
+                        <button type="submit" class="btn btn-primary rounded-pill" id="guardar-cliente-btn">Añadir Cliente</button>
+                        <button type="button" class="btn btn-secondary rounded-pill d-none" id="cancelar-edicion-btn">Cancelar Edición</button>
                     </form>
                 </div>
                 <div class="card p-4 shadow-lg w-100">
@@ -616,7 +666,7 @@
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody id="listaClientes">
+                            <tbody id="lista-clientes">
                                 </tbody>
                         </table>
                     </div>
@@ -625,18 +675,20 @@
             `;
 
             // Obtener referencias a los elementos del DOM
-            const formularioCliente = document.getElementById('formularioCliente');
-            const guardarClienteBtn = document.getElementById('guardarClienteBtn');
-            const cancelarEdicionBtn = document.getElementById('cancelarEdicionBtn');
-            const campoIdCliente = document.getElementById('idCliente'); // Campo oculto para el ID del cliente
-            const campoNombreCliente = document.getElementById('nombreCliente');
-            const campoCelularCliente = document.getElementById('celularCliente');
-            const campoDireccionCliente = document.getElementById('direccionCliente');
-            const listaClientes = document.getElementById('listaClientes');
+            const formularioCliente = document.getElementById('formulario-cliente');
+            const guardarClienteBtn = document.getElementById('guardar-cliente-btn');
+            const cancelarEdicionBtn = document.getElementById('cancelar-edicion-btn');
+            const campoIdCliente = document.getElementById('id-cliente'); // Campo oculto para el ID del cliente
+            const campoNombreCliente = document.getElementById('nombre-cliente');
+            const campoCelularCliente = document.getElementById('celular-cliente');
+            const campoDireccionCliente = document.getElementById('direccion-cliente');
+            const listaClientes = document.getElementById('lista-clientes');
 
             let idClienteEditando = null; // Variable para almacenar el ID del cliente que se está editando
 
-            // Carga y muestra la lista de clientes desde localStorage
+            /**
+             * Carga y muestra la lista de clientes desde localStorage.
+             */
             function cargarClientes() {
                 const clientes = obtenerDatos(`users_${idUsuarioActual}_clients`);
                 listaClientes.innerHTML = ''; // Limpia la lista existente
@@ -701,7 +753,10 @@
                 cancelarEdicionBtn.classList.add('d-none');
             });
 
-            // Función global para editar un cliente (llamada desde el HTML)
+            /**
+             * Función global para editar un cliente (llamada desde el HTML).
+             * @param {string} id - El ID del cliente a editar.
+             */
             window.editarCliente = (id) => {
                 const clientes = obtenerDatos(`users_${idUsuarioActual}_clients`);
                 const clienteAEditar = clientes.find(c => c.id === id);
@@ -715,7 +770,11 @@
                 }
             };
 
-            // Función global para eliminar un cliente (llamada desde el HTML)
+            /**
+             * Función global para eliminar un cliente (llamada desde el HTML).
+             * También elimina los préstamos y pagos asociados a ese cliente.
+             * @param {string} id - El ID del cliente a eliminar.
+             */
             window.eliminarCliente = (id) => {
                 mostrarModalConfirmacion('¿Estás seguro de que quieres eliminar este cliente? Esto también eliminará sus préstamos y pagos asociados.', () => {
                     let clientes = obtenerDatos(`users_${idUsuarioActual}_clients`);
@@ -739,42 +798,43 @@
             cargarClientes(); // Carga los clientes al renderizar la página
         }
 
-        // Renderiza la sección de creación de préstamos
+        /**
+         * Renderiza la sección de creación de préstamos.
+         */
         function renderizarPrestamos() {
-            const contenedorApp = document.getElementById('app-container');
+            const contenedorApp = document.getElementById('contenedor-app');
             contenedorApp.innerHTML = `
                 <div class="card p-4 shadow-lg w-100 mb-4">
                     <h2 class="mb-4 text-primary">Crear Nuevo Préstamo</h2>
-                    <form id="formularioPrestamo">
+                    <form id="formulario-prestamo">
                         <div class="mb-3">
-                            <label for="selectorClientePrestamo" class="form-label">Seleccionar Cliente</label>
-                            <select class="form-select rounded-pill" id="selectorClientePrestamo" required>
+                            <label for="selector-cliente-prestamo" class="form-label">Seleccionar Cliente</label>
+                            <select class="form-select rounded-pill" id="selector-cliente-prestamo" required>
                                 <option value="">-- Selecciona un cliente --</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="montoPrestamo" class="form-label">Monto a Prestar</label>
-                            <input type="number" class="form-control rounded-pill" id="montoPrestamo" min="0.01" step="0.01" required>
+                            <label for="monto-prestamo" class="form-label">Monto a Prestar</label>
+                            <input type="number" class="form-control rounded-pill" id="monto-prestamo" min="0.01" step="0.01" required>
                         </div>
                         <div class="mb-3">
-                            <label for="interesPrestamo" class="form-label">Interés</label>
-                            <select class="form-select rounded-pill" id="interesPrestamo" required>
+                            <label for="interes-prestamo" class="form-label">Interés</label>
+                            <select class="form-select rounded-pill" id="interes-prestamo" required>
                                 <option value="10">10%</option>
                                 <option value="20">20%</option>
                                 <option value="30">30%</option>
                                 <option value="40">40%</option>
-                        
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="semanasPrestamo" class="form-label">Semanas</label>
-                            <select class="form-select rounded-pill" id="semanasPrestamo" required>
+                            <label for="semanas-prestamo" class="form-label">Semanas</label>
+                            <select class="form-select rounded-pill" id="semanas-prestamo" required>
                                 ${Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}">${i + 1} semana(s)</option>`).join('')}
                             </select>
                         </div>
                         <div class="bg-light p-3 rounded-3 mb-4">
-                            <p class="mb-1">Monto Total a Pagar: <strong id="mostrarMontoTotal">$0.00</strong></p>
-                            <p class="mb-0">Abono Semanal: <strong id="mostrarPagoSemanal">$0.00</strong></p>
+                            <p class="mb-1">Monto Total a Pagar: <strong id="mostrar-monto-total">$0.00</strong></p>
+                            <p class="mb-0">Abono Semanal: <strong id="mostrar-pago-semanal">$0.00</strong></p>
                         </div>
                         <button type="submit" class="btn btn-success w-100 rounded-pill">Confirmar Préstamo</button>
                     </form>
@@ -783,15 +843,17 @@
             `;
 
             // Obtener referencias a los elementos del DOM
-            const selectorClientePrestamo = document.getElementById('selectorClientePrestamo');
-            const montoPrestamoInput = document.getElementById('montoPrestamo');
-            const interesPrestamoSelect = document.getElementById('interesPrestamo');
-            const semanasPrestamoSelect = document.getElementById('semanasPrestamo');
-            const mostrarMontoTotal = document.getElementById('mostrarMontoTotal');
-            const mostrarPagoSemanal = document.getElementById('mostrarPagoSemanal');
-            const formularioPrestamo = document.getElementById('formularioPrestamo');
+            const selectorClientePrestamo = document.getElementById('selector-cliente-prestamo');
+            const montoPrestamoInput = document.getElementById('monto-prestamo');
+            const interesPrestamoSelect = document.getElementById('interes-prestamo');
+            const semanasPrestamoSelect = document.getElementById('semanas-prestamo');
+            const mostrarMontoTotal = document.getElementById('mostrar-monto-total');
+            const mostrarPagoSemanal = document.getElementById('mostrar-pago-semanal');
+            const formularioPrestamo = document.getElementById('formulario-prestamo');
 
-            // Carga los clientes en el selector de préstamos
+            /**
+             * Carga los clientes en el selector de préstamos.
+             */
             function cargarClientesParaPrestamo() {
                 const clientes = obtenerDatos(`users_${idUsuarioActual}_clients`);
                 selectorClientePrestamo.innerHTML = '<option value="">-- Selecciona un cliente --</option>';
@@ -803,7 +865,9 @@
                 });
             }
 
-            // Calcula y muestra los detalles del préstamo (monto total, pago semanal)
+            /**
+             * Calcula y muestra los detalles del préstamo (monto total a pagar, abono semanal).
+             */
             function calcularDetallesPrestamo() {
                 const monto = parseFloat(montoPrestamoInput.value) || 0;
                 const tasaInteres = parseFloat(interesPrestamoSelect.value) / 100;
@@ -885,27 +949,29 @@
             calcularDetallesPrestamo(); // Realiza el cálculo inicial al cargar la página
         }
 
-        // Renderiza la sección de gestión de pagos
+        /**
+         * Renderiza la sección de gestión de pagos.
+         */
         function renderizarPagos() {
-            const contenedorApp = document.getElementById('app-container');
+            const contenedorApp = document.getElementById('contenedor-app');
             contenedorApp.innerHTML = `
                 <div class="card p-4 shadow-lg w-100 mb-4">
                     <h2 class="mb-4 text-primary">Gestión de Pagos</h2>
                     <div class="row mb-4">
                         <div class="col-md-6 mb-3">
-                            <label for="selectorClientePago" class="form-label">Seleccionar Cliente</label>
-                            <select class="form-select rounded-pill" id="selectorClientePago">
+                            <label for="selector-cliente-pago" class="form-label">Seleccionar Cliente</label>
+                            <select class="form-select rounded-pill" id="selector-cliente-pago">
                                 <option value="">-- Selecciona un cliente --</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="selectorPrestamoPago" class="form-label">Seleccionar Préstamo</label>
-                            <select class="form-select rounded-pill" id="selectorPrestamoPago" disabled>
+                            <label for="selector-prestamo-pago" class="form-label">Seleccionar Préstamo</label>
+                            <select class="form-select rounded-pill" id="selector-prestamo-pago" disabled>
                                 <option value="">-- Selecciona un préstamo --</option>
                             </select>
                         </div>
                     </div>
-                    <div id="detallesPagos" class="d-none">
+                    <div id="detalles-pagos" class="d-none">
                         <h3 class="mb-3 text-secondary">Detalle de Pagos del Préstamo</h3>
                         <div class="table-responsive mb-4">
                             <table class="table table-hover table-striped rounded-3 overflow-hidden">
@@ -920,26 +986,28 @@
                                         <th>Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody id="listaPagos">
+                                <tbody id="lista-pagos">
                                     </tbody>
                             </table>
                         </div>
-                        <button class="btn btn-indigo rounded-pill me-2" id="liquidarPrestamoBtn">Liquidar Préstamo</button>
+                        <button class="btn btn-indigo rounded-pill me-2" id="liquidar-prestamo-btn">Liquidar Préstamo</button>
                     </div>
                     <button class="btn btn-secondary mt-4 rounded-pill" onclick="navegarA('dashboard')">Volver al Menú</button>
                 </div>
             `;
 
             // Obtener referencias a los elementos del DOM
-            const selectorClientePago = document.getElementById('selectorClientePago');
-            const selectorPrestamoPago = document.getElementById('selectorPrestamoPago');
-            const detallesPagos = document.getElementById('detallesPagos');
-            const listaPagos = document.getElementById('listaPagos');
-            const liquidarPrestamoBtn = document.getElementById('liquidarPrestamoBtn');
+            const selectorClientePago = document.getElementById('selector-cliente-pago');
+            const selectorPrestamoPago = document.getElementById('selector-prestamo-pago');
+            const detallesPagos = document.getElementById('detalles-pagos');
+            const listaPagos = document.getElementById('lista-pagos');
+            const liquidarPrestamoBtn = document.getElementById('liquidar-prestamo-btn');
 
             let idPrestamoSeleccionadoActual = null; // Almacena el ID del préstamo seleccionado
 
-            // Carga los clientes en el selector de pagos
+            /**
+             * Carga los clientes en el selector de pagos.
+             */
             function cargarClientesParaPagos() {
                 const clientes = obtenerDatos(`users_${idUsuarioActual}_clients`);
                 selectorClientePago.innerHTML = '<option value="">-- Selecciona un cliente --</option>';
@@ -951,7 +1019,9 @@
                 });
             }
 
-            // Carga los préstamos del cliente seleccionado
+            /**
+             * Carga los préstamos del cliente seleccionado en el selector de préstamos.
+             */
             function cargarPrestamosParaPagos() {
                 const idCliente = selectorClientePago.value;
                 selectorPrestamoPago.innerHTML = '<option value="">-- Selecciona un préstamo --</option>';
@@ -975,7 +1045,10 @@
                 }
             }
 
-            // Carga y muestra los pagos para el préstamo seleccionado
+            /**
+             * Carga y muestra los pagos para el préstamo seleccionado.
+             * Calcula multas y actualiza el estado de los pagos.
+             */
             function cargarPagosParaPrestamoSeleccionado() {
                 idPrestamoSeleccionadoActual = selectorPrestamoPago.value;
                 listaPagos.innerHTML = '';
@@ -1051,7 +1124,14 @@
             selectorPrestamoPago.addEventListener('change', cargarPagosParaPrestamoSeleccionado);
             liquidarPrestamoBtn.addEventListener('click', liquidarPrestamo);
 
-            // Función global para marcar un pago como realizado
+            /**
+             * Función global para marcar un pago como realizado.
+             * Muestra un modal de entrada para el monto pagado y maneja el sobrepago.
+             * @param {string} idPago - El ID del pago a marcar.
+             * @param {number} montoActualDebido - El monto original debido para este pago.
+             * @param {number} montoActualPagado - El monto ya pagado para este pago.
+             * @param {number} multa - La multa actual aplicada a este pago.
+             */
             window.marcarComoPagado = (idPago, montoActualDebido, montoActualPagado, multa) => {
                 const montoAPagar = (montoActualDebido + multa - montoActualPagado).toFixed(2);
 
@@ -1112,7 +1192,12 @@
                 );
             };
 
-            // Aplica el sobrepago a los siguientes pagos pendientes
+            /**
+             * Aplica el sobrepago a los siguientes pagos pendientes del mismo préstamo.
+             * @param {string} idPrestamo - El ID del préstamo.
+             * @param {number} numeroPagoActual - El número del pago actual (para empezar desde el siguiente).
+             * @param {number} sobrepago - El monto del sobrepago a aplicar.
+             */
             async function aplicarSobrepagoAPagosSiguientes(idPrestamo, numeroPagoActual, sobrepago) {
                 let todosLosPagos = obtenerDatos(`users_${idUsuarioActual}_payments`);
                 const pagosPendientes = todosLosPagos
@@ -1150,7 +1235,11 @@
                 guardarDatos(`users_${idUsuarioActual}_payments`, todosLosPagos);
             }
 
-            // Verifica y liquida un préstamo si todos sus pagos están completados
+            /**
+             * Verifica si un préstamo ha sido liquidado (todos sus pagos están en estado 'PAGADO').
+             * Si es así, actualiza el estado del préstamo a 'LIQUIDADO'.
+             * @param {string} idPrestamo - El ID del préstamo a verificar.
+             */
             function verificarYLiquidarPrestamo(idPrestamo) {
                 const pagos = obtenerDatos(`users_${idUsuarioActual}_payments`).filter(p => p.loanId === idPrestamo);
                 const todosLosPagosEstanPagados = pagos.every(p => p.status === 'PAGADO');
@@ -1166,7 +1255,9 @@
                 }
             }
 
-            // Liquida un préstamo, marcando todos sus pagos pendientes como pagados
+            /**
+             * Liquida un préstamo, marcando todos sus pagos pendientes como pagados.
+             */
             function liquidarPrestamo() {
                 mostrarModalConfirmacion(
                     '¿Estás seguro de que quieres liquidar este préstamo? Esto marcará todos los pagos pendientes como pagados.',
@@ -1198,7 +1289,10 @@
                 );
             }
 
-            // Genera un recibo de pago en una nueva ventana para imprimir
+            /**
+             * Genera un recibo de pago en una nueva ventana para imprimir.
+             * @param {string} idPago - El ID del pago para el cual generar el recibo.
+             */
             window.generarRecibo = (idPago) => {
                 const pagos = obtenerDatos(`users_${idUsuarioActual}_payments`);
                 const pago = pagos.find(p => p.id === idPago);
@@ -1253,55 +1347,57 @@
             }
         }
 
-        // Renderiza la sección de detalle del cliente
+        /**
+         * Renderiza la sección de detalle del cliente.
+         */
         function renderizarDetalleCliente() {
-            const contenedorApp = document.getElementById('app-container');
+            const contenedorApp = document.getElementById('contenedor-app');
             contenedorApp.innerHTML = `
                 <div class="card p-4 shadow-lg w-100 mb-4">
                     <h2 class="mb-4 text-primary">Detalle del Cliente</h2>
                     <div class="mb-4">
-                        <label for="selectorDetalleCliente" class="form-label">Seleccionar Cliente</label>
-                        <select class="form-select rounded-pill" id="selectorDetalleCliente">
+                        <label for="selector-detalle-cliente" class="form-label">Seleccionar Cliente</label>
+                        <select class="form-select rounded-pill" id="selector-detalle-cliente">
                             <option value="">-- Selecciona un cliente --</option>
                         </select>
                     </div>
 
-                    <div id="contenidoDetallesCliente" class="d-none">
+                    <div id="contenido-detalles-cliente" class="d-none">
                         <div class="bg-light p-3 rounded-3 mb-3">
                             <h4 class="text-secondary">Información del Cliente</h4>
-                            <p><strong>Nombre:</strong> <span id="nombreDetalleCliente"></span></p>
-                            <p><strong>Celular:</strong> <span id="celularDetalleCliente"></span></p>
-                            <p><strong>Dirección:</strong> <span id="direccionDetalleCliente"></span></p>
+                            <p><strong>Nombre:</strong> <span id="nombre-detalle-cliente"></span></p>
+                            <p><strong>Celular:</strong> <span id="celular-detalle-cliente"></span></p>
+                            <p><strong>Dirección:</strong> <span id="direccion-detalle-cliente"></span></p>
                         </div>
 
                         <div class="bg-light p-3 rounded-3 mb-3">
                             <h4 class="text-secondary">Estado Actual de Préstamos</h4>
-                            <ul id="listaPrestamosActuales" class="list-unstyled"></ul>
-                            <p id="sinPrestamosActuales" class="text-muted d-none">No hay préstamos activos para este cliente.</p>
+                            <ul id="lista-prestamos-actuales" class="list-unstyled"></ul>
+                            <p id="sin-prestamos-actuales" class="text-muted d-none">No hay préstamos activos para este cliente.</p>
                         </div>
 
                         <div class="bg-light p-3 rounded-3 mb-3">
                             <h4 class="text-secondary">Historial de Préstamos Anteriores</h4>
-                            <ul id="listaPrestamosAnteriores" class="list-unstyled"></ul>
-                            <p id="sinPrestamosAnteriores" class="text-muted d-none">No hay historial de préstamos liquidados.</p>
+                            <ul id="lista-prestamos-anteriores" class="list-unstyled"></ul>
+                            <p id="sin-prestamos-anteriores" class="text-muted d-none">No hay historial de préstamos liquidados.</p>
                         </div>
 
                         <div class="bg-light p-3 rounded-3 mb-3">
                             <h4 class="text-secondary">Pagos Realizados</h4>
-                            <ul id="listaPagosRealizados" class="list-unstyled"></ul>
-                            <p id="sinPagosRealizados" class="text-muted d-none">No hay pagos registrados para este cliente.</p>
+                            <ul id="lista-pagos-realizados" class="list-unstyled"></ul>
+                            <p id="sin-pagos-realizados" class="text-muted d-none">No hay pagos registrados para este cliente.</p>
                         </div>
 
                         <div class="bg-light p-3 rounded-3 mb-3">
                             <h4 class="text-secondary">Atrasos y Multas</h4>
-                            <p><strong>Total de Multas Acumuladas:</strong> <span class="text-danger fw-bold" id="mostrarMultaTotal">$0.00</span></p>
-                            <ul id="listaPagosAtrasados" class="list-unstyled"></ul>
-                            <p id="sinPagosAtrasados" class="text-muted d-none">No hay atrasos ni multas pendientes.</p>
+                            <p><strong>Total de Multas Acumuladas:</strong> <span class="text-danger fw-bold" id="mostrar-multa-total">$0.00</span></p>
+                            <ul id="lista-pagos-atrasados" class="list-unstyled"></ul>
+                            <p id="sin-pagos-atrasados" class="text-muted d-none">No hay atrasos ni multas pendientes.</p>
                         </div>
 
                         <div class="bg-primary text-white p-3 rounded-3 text-center">
                             <h4 class="mb-2">Saldo Restante Total</h4>
-                            <p class="fs-2 fw-bold" id="mostrarSaldoRestante">$0.00</p>
+                            <p class="fs-2 fw-bold" id="mostrar-saldo-restante">$0.00</p>
                         </div>
                     </div>
                     <button class="btn btn-secondary mt-4 rounded-pill" onclick="navegarA('dashboard')">Volver al Menú</button>
@@ -1309,23 +1405,25 @@
             `;
 
             // Obtener referencias a los elementos del DOM
-            const selectorDetalleCliente = document.getElementById('selectorDetalleCliente');
-            const contenidoDetallesCliente = document.getElementById('contenidoDetallesCliente');
-            const nombreDetalleCliente = document.getElementById('nombreDetalleCliente');
-            const celularDetalleCliente = document.getElementById('celularDetalleCliente');
-            const direccionDetalleCliente = document.getElementById('direccionDetalleCliente');
-            const listaPrestamosActuales = document.getElementById('listaPrestamosActuales');
-            const sinPrestamosActuales = document.getElementById('sinPrestamosActuales');
-            const listaPrestamosAnteriores = document.getElementById('listaPrestamosAnteriores');
-            const sinPrestamosAnteriores = document.getElementById('sinPrestamosAnteriores');
-            const listaPagosRealizados = document.getElementById('listaPagosRealizados');
-            const sinPagosRealizados = document.getElementById('sinPagosRealizados');
-            const mostrarMultaTotal = document.getElementById('mostrarMultaTotal');
-            const listaPagosAtrasados = document.getElementById('listaPagosAtrasados');
-            const sinPagosAtrasados = document.getElementById('sinPagosAtrasados');
-            const mostrarSaldoRestante = document.getElementById('mostrarSaldoRestante');
+            const selectorDetalleCliente = document.getElementById('selector-detalle-cliente');
+            const contenidoDetallesCliente = document.getElementById('contenido-detalles-cliente');
+            const nombreDetalleCliente = document.getElementById('nombre-detalle-cliente');
+            const celularDetalleCliente = document.getElementById('celular-detalle-cliente');
+            const direccionDetalleCliente = document.getElementById('direccion-detalle-cliente');
+            const listaPrestamosActuales = document.getElementById('lista-prestamos-actuales');
+            const sinPrestamosActuales = document.getElementById('sin-prestamos-actuales');
+            const listaPrestamosAnteriores = document.getElementById('lista-prestamos-anteriores');
+            const sinPrestamosAnteriores = document.getElementById('sin-prestamos-anteriores');
+            const listaPagosRealizados = document.getElementById('lista-pagos-realizados');
+            const sinPagosRealizados = document.getElementById('sin-pagos-realizados');
+            const mostrarMultaTotal = document.getElementById('mostrar-multa-total');
+            const listaPagosAtrasados = document.getElementById('lista-pagos-atrasados');
+            const sinPagosAtrasados = document.getElementById('sin-pagos-atrasados');
+            const mostrarSaldoRestante = document.getElementById('mostrar-saldo-restante');
 
-            // Carga los clientes en el selector de detalle de cliente
+            /**
+             * Carga los clientes en el selector de detalle de cliente.
+             */
             function cargarClientesParaDetalle() {
                 const clientes = obtenerDatos(`users_${idUsuarioActual}_clients`);
                 selectorDetalleCliente.innerHTML = '<option value="">-- Selecciona un cliente --</option>';
@@ -1337,7 +1435,9 @@
                 });
             }
 
-            // Muestra los detalles del cliente seleccionado
+            /**
+             * Muestra los detalles del cliente seleccionado, incluyendo préstamos, pagos y multas.
+             */
             function mostrarDetallesCliente() {
                 const idCliente = selectorDetalleCliente.value;
                 if (!idCliente) {
@@ -1459,6 +1559,286 @@
             selectorDetalleCliente.addEventListener('change', mostrarDetallesCliente);
             cargarClientesParaDetalle(); // Carga los clientes al iniciar la sección
         }
+
+        // --- Nueva Sección: Editar Préstamos ---
+        /**
+         * Renderiza la sección para editar y eliminar préstamos.
+         */
+        function renderizarEditarPrestamos() {
+            const contenedorApp = document.getElementById('contenedor-app');
+            contenedorApp.innerHTML = `
+                <div class="card p-4 shadow-lg w-100 mb-4">
+                    <h2 class="mb-4 text-primary">Editar / Eliminar Préstamo</h2>
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <label for="selector-cliente-editar-prestamo" class="form-label">Seleccionar Cliente</label>
+                            <select class="form-select rounded-pill" id="selector-cliente-editar-prestamo">
+                                <option value="">-- Selecciona un cliente --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="selector-prestamo-editar" class="form-label">Seleccionar Préstamo</label>
+                            <select class="form-select rounded-pill" id="selector-prestamo-editar" disabled>
+                                <option value="">-- Selecciona un préstamo --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="detalles-prestamo-edicion" class="d-none bg-light p-4 rounded-3">
+                        <h3 class="mb-3 text-secondary">Detalles del Préstamo Seleccionado</h3>
+                        <form id="formulario-editar-prestamo">
+                            <input type="hidden" id="id-prestamo-edicion">
+                            <div class="mb-3">
+                                <label for="monto-prestamo-edicion" class="form-label">Monto a Prestar</label>
+                                <input type="number" class="form-control rounded-pill" id="monto-prestamo-edicion" min="0.01" step="0.01" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="interes-prestamo-edicion" class="form-label">Interés</label>
+                                <select class="form-select rounded-pill" id="interes-prestamo-edicion" required>
+                                    <option value="10">10%</option>
+                                    <option value="20">20%</option>
+                                    <option value="30">30%</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="semanas-prestamo-edicion" class="form-label">Semanas</label>
+                                <select class="form-select rounded-pill" id="semanas-prestamo-edicion" required>
+                                    ${Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}">${i + 1} semana(s)</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="bg-white p-3 rounded-3 mb-4">
+                                <p class="mb-1">Monto Total a Pagar: <strong id="mostrar-monto-total-edicion">$0.00</strong></p>
+                                <p class="mb-0">Abono Semanal: <strong id="mostrar-pago-semanal-edicion">$0.00</strong></p>
+                            </div>
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="submit" class="btn btn-success rounded-pill">Actualizar Préstamo</button>
+                                <button type="button" class="btn btn-danger rounded-pill" id="eliminar-prestamo-btn">Eliminar Préstamo</button>
+                            </div>
+                        </form>
+                    </div>
+                    <button class="btn btn-secondary mt-4 rounded-pill" onclick="navegarA('dashboard')">Volver al Menú</button>
+                </div>
+            `;
+
+            // Obtener referencias a los elementos del DOM en esta sección
+            const selectorClienteEditarPrestamo = document.getElementById('selector-cliente-editar-prestamo');
+            const selectorPrestamoEditar = document.getElementById('selector-prestamo-editar');
+            const detallesPrestamoEdicion = document.getElementById('detalles-prestamo-edicion');
+            const formularioEditarPrestamo = document.getElementById('formulario-editar-prestamo');
+            const idPrestamoEdicion = document.getElementById('id-prestamo-edicion');
+            const montoPrestamoEdicion = document.getElementById('monto-prestamo-edicion');
+            const interesPrestamoEdicion = document.getElementById('interes-prestamo-edicion');
+            const semanasPrestamoEdicion = document.getElementById('semanas-prestamo-edicion');
+            const mostrarMontoTotalEdicion = document.getElementById('mostrar-monto-total-edicion');
+            const mostrarPagoSemanalEdicion = document.getElementById('mostrar-pago-semanal-edicion');
+            const eliminarPrestamoBtn = document.getElementById('eliminar-prestamo-btn');
+
+            let prestamoActualEditando = null; // Almacena el objeto del préstamo que se está editando
+
+            /**
+             * Carga los clientes en el selector de edición de préstamos.
+             */
+            function cargarClientesParaEdicion() {
+                const clientes = obtenerDatos(`users_${idUsuarioActual}_clients`);
+                selectorClienteEditarPrestamo.innerHTML = '<option value="">-- Selecciona un cliente --</option>';
+                clientes.forEach(cliente => {
+                    const opcion = document.createElement('option');
+                    opcion.value = cliente.id;
+                    opcion.textContent = cliente.name;
+                    selectorClienteEditarPrestamo.appendChild(opcion);
+                });
+            }
+
+            /**
+             * Carga los préstamos del cliente seleccionado en el selector de préstamos para edición.
+             */
+            function cargarPrestamosParaEdicion() {
+                const idCliente = selectorClienteEditarPrestamo.value;
+                selectorPrestamoEditar.innerHTML = '<option value="">-- Selecciona un préstamo --</option>';
+                selectorPrestamoEditar.disabled = true;
+                detallesPrestamoEdicion.classList.add('d-none');
+                prestamoActualEditando = null; // Reiniciar el préstamo en edición
+
+                if (idCliente) {
+                    const prestamos = obtenerDatos(`users_${idUsuarioActual}_loans`).filter(prestamo => prestamo.clientId === idCliente);
+                    if (prestamos.length > 0) {
+                        selectorPrestamoEditar.disabled = false;
+                        prestamos.forEach(prestamo => {
+                            const opcion = document.createElement('option');
+                            opcion.value = prestamo.id;
+                            opcion.textContent = `Monto: $${prestamo.amount.toFixed(2)} - Semanas: ${prestamo.weeks} - Estado: ${prestamo.status}`;
+                            selectorPrestamoEditar.appendChild(opcion);
+                        });
+                    } else {
+                        mostrarModalMensaje('Información', 'No hay préstamos para este cliente.', 'info');
+                    }
+                }
+            }
+
+            /**
+             * Muestra los detalles del préstamo seleccionado en el formulario de edición.
+             */
+            function mostrarDetallesPrestamoParaEdicion() {
+                const idPrestamo = selectorPrestamoEditar.value;
+                if (!idPrestamo) {
+                    detallesPrestamoEdicion.classList.add('d-none');
+                    prestamoActualEditando = null;
+                    return;
+                }
+
+                const prestamos = obtenerDatos(`users_${idUsuarioActual}_loans`);
+                const prestamo = prestamos.find(p => p.id === idPrestamo);
+
+                if (prestamo) {
+                    prestamoActualEditando = { ...prestamo }; // Copia el objeto para evitar mutaciones directas
+                    idPrestamoEdicion.value = prestamo.id;
+                    montoPrestamoEdicion.value = prestamo.amount;
+                    interesPrestamoEdicion.value = prestamo.interestRate;
+                    semanasPrestamoEdicion.value = prestamo.weeks;
+                    calcularDetallesEdicion(); // Recalcular con los valores actuales
+                    detallesPrestamoEdicion.classList.remove('d-none');
+                } else {
+                    detallesPrestamoEdicion.classList.add('d-none');
+                    prestamoActualEditando = null;
+                    mostrarModalMensaje('Error', 'Préstamo no encontrado.', 'error');
+                }
+            }
+
+            /**
+             * Recalcula el monto total y el abono semanal en el formulario de edición.
+             */
+            function calcularDetallesEdicion() {
+                const monto = parseFloat(montoPrestamoEdicion.value) || 0;
+                const tasaInteres = parseFloat(interesPrestamoEdicion.value) / 100;
+                const semanas = parseInt(semanasPrestamoEdicion.value) || 1;
+
+                const montoTotal = monto * (1 + tasaInteres);
+                const pagoSemanal = montoTotal / semanas;
+
+                mostrarMontoTotalEdicion.textContent = `$${montoTotal.toFixed(2)}`;
+                mostrarPagoSemanalEdicion.textContent = `$${pagoSemanal.toFixed(2)}`;
+
+                // Actualizar el objeto prestamoActualEditando con los nuevos valores calculados
+                if (prestamoActualEditando) {
+                    prestamoActualEditando.totalAmount = montoTotal;
+                    prestamoActualEditando.weeklyPayment = pagoSemanal;
+                }
+            }
+
+            // Event listeners para los cambios en el formulario de edición
+            montoPrestamoEdicion.addEventListener('input', calcularDetallesEdicion);
+            interesPrestamoEdicion.addEventListener('change', calcularDetallesEdicion);
+            semanasPrestamoEdicion.addEventListener('change', calcularDetallesEdicion);
+
+            // Maneja la actualización del préstamo
+            formularioEditarPrestamo.addEventListener('submit', (e) => {
+                e.preventDefault();
+                if (!prestamoActualEditando || !idUsuarioActual) {
+                    mostrarModalMensaje('Error', 'No hay préstamo seleccionado para actualizar.', 'error');
+                    return;
+                }
+
+                const nuevoMonto = parseFloat(montoPrestamoEdicion.value);
+                const nuevaTasaInteres = parseFloat(interesPrestamoEdicion.value);
+                const nuevasSemanas = parseInt(semanasPrestamoEdicion.value);
+                const nuevoMontoTotal = parseFloat(mostrarMontoTotalEdicion.textContent.replace('$', ''));
+                const nuevoPagoSemanal = parseFloat(mostrarPagoSemanalEdicion.textContent.replace('$', ''));
+
+                if (nuevoMonto <= 0 || nuevasSemanas <= 0) {
+                    mostrarModalMensaje('Error', 'Monto y semanas deben ser mayores a cero.', 'error');
+                    return;
+                }
+
+                mostrarModalConfirmacion(
+                    '¿Estás seguro de que quieres actualizar este préstamo? Esto regenerará todos sus pagos.',
+                    () => {
+                        let prestamos = obtenerDatos(`users_${idUsuarioActual}_loans`);
+                        const indicePrestamo = prestamos.findIndex(p => p.id === prestamoActualEditando.id);
+
+                        if (indicePrestamo !== -1) {
+                            // Actualizar los datos del préstamo
+                            prestamos[indicePrestamo].amount = nuevoMonto;
+                            prestamos[indicePrestamo].interestRate = nuevaTasaInteres;
+                            prestamos[indicePrestamo].weeks = nuevasSemanas;
+                            prestamos[indicePrestamo].totalAmount = nuevoMontoTotal;
+                            prestamos[indicePrestamo].weeklyPayment = nuevoPagoSemanal;
+                            guardarDatos(`users_${idUsuarioActual}_loans`, prestamos);
+
+                            // Eliminar todos los pagos existentes para este préstamo
+                            let pagos = obtenerDatos(`users_${idUsuarioActual}_payments`);
+                            pagos = pagos.filter(p => p.loanId !== prestamoActualEditando.id);
+
+                            // Regenerar nuevos pagos basados en los datos actualizados
+                            for (let i = 0; i < nuevasSemanas; i++) {
+                                const fechaVencimiento = new Date();
+                                fechaVencimiento.setDate(fechaVencimiento.getDate() + (i + 1) * 7);
+                                pagos.push({
+                                    id: generarIdUnico(),
+                                    loanId: prestamoActualEditando.id,
+                                    clientId: prestamoActualEditando.clientId,
+                                    clientName: prestamoActualEditando.clientName,
+                                    paymentNumber: i + 1,
+                                    dueDate: fechaVencimiento.toISOString(),
+                                    amountDue: nuevoPagoSemanal,
+                                    amountPaid: 0,
+                                    fine: 0,
+                                    status: 'PENDIENTE',
+                                    paymentDate: null
+                                });
+                            }
+                            guardarDatos(`users_${idUsuarioActual}_payments`, pagos);
+
+                            mostrarModalMensaje('Éxito', 'Préstamo actualizado y pagos regenerados exitosamente.', 'success');
+                            // Reiniciar la selección y el formulario
+                            selectorClienteEditarPrestamo.value = '';
+                            selectorPrestamoEditar.innerHTML = '<option value="">-- Selecciona un préstamo --</option>';
+                            selectorPrestamoEditar.disabled = true;
+                            detallesPrestamoEdicion.classList.add('d-none');
+                            prestamoActualEditando = null;
+                        } else {
+                            mostrarModalMensaje('Error', 'Préstamo no encontrado para actualizar.', 'error');
+                        }
+                    }
+                );
+            });
+
+            // Maneja la eliminación del préstamo
+            eliminarPrestamoBtn.addEventListener('click', () => {
+                if (!prestamoActualEditando || !idUsuarioActual) {
+                    mostrarModalMensaje('Error', 'No hay préstamo seleccionado para eliminar.', 'error');
+                    return;
+                }
+
+                mostrarModalConfirmacion(
+                    '¿Estás seguro de que quieres eliminar este préstamo? Esto eliminará todos sus pagos asociados de forma permanente.',
+                    () => {
+                        let prestamos = obtenerDatos(`users_${idUsuarioActual}_loans`);
+                        prestamos = prestamos.filter(p => p.id !== prestamoActualEditando.id);
+                        guardarDatos(`users_${idUsuarioActual}_loans`, prestamos);
+
+                        let pagos = obtenerDatos(`users_${idUsuarioActual}_payments`);
+                        pagos = pagos.filter(p => p.loanId !== prestamoActualEditando.id);
+                        guardarDatos(`users_${idUsuarioActual}_payments`, pagos);
+
+                        mostrarModalMensaje('Éxito', 'Préstamo y todos sus pagos eliminados exitosamente.', 'success');
+                        // Reiniciar la selección y el formulario
+                        selectorClienteEditarPrestamo.value = '';
+                        selectorPrestamoEditar.innerHTML = '<option value="">-- Selecciona un préstamo --</option>';
+                        selectorPrestamoEditar.disabled = true;
+                        detallesPrestamoEdicion.classList.add('d-none');
+                        prestamoActualEditando = null;
+                    }
+                );
+            });
+
+            // Añade event listeners para los selectores
+            selectorClienteEditarPrestamo.addEventListener('change', cargarPrestamosParaEdicion);
+            selectorPrestamoEditar.addEventListener('change', mostrarDetallesPrestamoParaEdicion);
+
+            // Carga inicial de clientes al renderizar la sección
+            cargarClientesParaEdicion();
+        }
+
 
         // --- Inicialización de la Aplicación ---
         // Se ejecuta cuando el DOM está completamente cargado
