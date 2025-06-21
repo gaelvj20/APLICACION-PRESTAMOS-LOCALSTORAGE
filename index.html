@@ -531,6 +531,9 @@
                 case 'editarPrestamos': // Nueva sección para editar préstamos
                     renderizarEditarPrestamos();
                     break;
+                case 'pagosPendientes': // Nueva sección para editar préstamos
+                    renderizarPagosPendientes();
+                    break;
                 default:
                     renderizarLogin();
                     break;
@@ -620,6 +623,11 @@
                         <div class="col-md-6">
                             <button class="btn btn-secondary w-100 p-4 fs-4 d-flex flex-column align-items-center" onclick="navegarA('editarPrestamos')">
                                 ✏️ <span class="mt-2">Editar Préstamos</span>
+                            </button>
+                        </div>
+                         <div class="col-md-6">
+                            <button class="btn btn-info w-100 p-4 fs-4 d-flex flex-column align-items-center" onclick="navegarA('pagosPendientes')">
+                                $ <span class="mt-2">Pagos Pendientes</span>
                             </button>
                         </div>
                     </div>
@@ -832,6 +840,11 @@
                                 ${Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}">${i + 1} semana(s)</option>`).join('')}
                             </select>
                         </div>
+                        <div class="mb-3">
+    <label for="fecha-inicial-pago" class="form-label">Fecha de Primer Pago</label>
+    <input type="date" class="form-control rounded-pill" id="fecha-inicial-pago" required>
+</div>
+
                         <div class="bg-light p-3 rounded-3 mb-4">
                             <p class="mb-1">Monto Total a Pagar: <strong id="mostrar-monto-total">$0.00</strong></p>
                             <p class="mb-0">Abono Semanal: <strong id="mostrar-pago-semanal">$0.00</strong></p>
@@ -850,6 +863,7 @@
             const mostrarMontoTotal = document.getElementById('mostrar-monto-total');
             const mostrarPagoSemanal = document.getElementById('mostrar-pago-semanal');
             const formularioPrestamo = document.getElementById('formulario-prestamo');
+            const fechaInicialInput = document.getElementById('fecha-inicial-pago'); // <-- Añade esto aquí
 
             /**
              * Carga los clientes en el selector de préstamos.
@@ -895,10 +909,11 @@
                 const montoTotal = parseFloat(mostrarMontoTotal.textContent.replace('$', ''));
                 const pagoSemanal = parseFloat(mostrarPagoSemanal.textContent.replace('$', ''));
 
-                if (!idCliente || monto <= 0 || semanas <= 0) {
-                    mostrarModalMensaje('Error', 'Por favor, completa todos los campos correctamente.', 'error');
-                    return;
-                }
+             if (!idCliente || monto <= 0 || semanas <= 0 || !fechaInicialInput.value) {
+    mostrarModalMensaje('Error', 'Por favor, completa todos los campos correctamente, incluida la fecha inicial.', 'error');
+    return;
+}
+
 
                 const clientes = obtenerDatos(`users_${idUsuarioActual}_clients`);
                 const nombreCliente = clientes.find(c => c.id === idCliente)?.name || 'Cliente Desconocido';
@@ -919,24 +934,36 @@
                 prestamos.push(nuevoPrestamo);
                 guardarDatos(`users_${idUsuarioActual}_loans`, prestamos);
 
-                const pagos = obtenerDatos(`users_${idUsuarioActual}_payments`);
-                for (let i = 0; i < semanas; i++) {
-                    const fechaVencimiento = new Date();
-                    fechaVencimiento.setDate(fechaVencimiento.getDate() + (i + 1) * 7); // Añade (i+1) semanas a la fecha actual
-                    pagos.push({
-                        id: generarIdUnico(),
-                        loanId: nuevoPrestamo.id,
-                        clientId: nuevoPrestamo.clientId,
-                        clientName: nuevoPrestamo.clientName,
-                        paymentNumber: i + 1,
-                        dueDate: fechaVencimiento.toISOString(),
-                        amountDue: pagoSemanal,
-                        amountPaid: 0,
-                        fine: 0,
-                        status: 'PENDIENTE',
-                        paymentDate: null
-                    });
-                }
+           
+const pagos = obtenerDatos(`users_${idUsuarioActual}_payments`);
+const fechaInicialStr = fechaInicialInput.value;
+if (!fechaInicialStr) {
+    mostrarModalMensaje('Error', 'Selecciona una fecha válida para el primer pago.', 'error');
+    return;
+}
+const [año, mes, dia] = fechaInicialStr.split('-');
+const fechaInicial = new Date(año, mes - 1, dia); // mes-1 porque en JS enero es 0
+
+
+for (let i = 0; i < semanas; i++) {
+    const fechaVencimiento = new Date(fechaInicial);
+    fechaVencimiento.setDate(fechaVencimiento.getDate() + i * 7);
+
+    pagos.push({
+        id: generarIdUnico(),
+        loanId: nuevoPrestamo.id,
+        clientId: nuevoPrestamo.clientId,
+        clientName: nuevoPrestamo.clientName,
+        paymentNumber: i + 1,
+        dueDate: fechaVencimiento.toISOString(),
+        amountDue: pagoSemanal,
+        amountPaid: 0,
+        fine: 0,
+        status: 'PENDIENTE',
+        paymentDate: null
+    });
+}
+
                 guardarDatos(`users_${idUsuarioActual}_payments`, pagos);
 
                 mostrarModalMensaje('Éxito', 'Préstamo confirmado y pagos generados.', 'success');
@@ -1839,7 +1866,73 @@
             cargarClientesParaEdicion();
         }
 
+function renderizarPagosPendientes() {
+    const contenedorApp = document.getElementById('contenedor-app');
+    if (!contenedorApp) {
+        console.error('Error: No se encontró el contenedor con id="contenedor-app"');
+        return;
+    }
 
+    contenedorApp.innerHTML = `
+        <div class="card p-4 shadow-lg w-100 mb-4">
+            <h2 class="mb-4 text-primary">Pagos Pendientes por Fecha</h2>
+
+            <div class="mb-3">
+                <label for="filtro-fecha-pago" class="form-label">Selecciona una Fecha</label>
+                <input type="date" id="filtro-fecha-pago" class="form-control rounded-pill">
+            </div>
+
+            <div id="listado-pagos-pendientes">
+                <p class="text-muted">Selecciona una fecha para ver los pagos pendientes.</p>
+            </div>
+
+            <button class="btn btn-secondary mt-4 rounded-pill" onclick="navegarA('dashboard')">Volver al Menú</button>
+        </div>
+    `;
+
+    const inputFecha = document.getElementById('filtro-fecha-pago');
+    inputFecha.addEventListener('change', () => {
+        const fechaSeleccionada = inputFecha.value;
+        console.log('Fecha seleccionada:', fechaSeleccionada); // 🐞 depuración
+        mostrarPagosPendientesPorFecha(fechaSeleccionada);
+    });
+}
+function mostrarPagosPendientesPorFecha(fechaStr) {
+    const pagos = obtenerDatos(`users_${idUsuarioActual}_payments`);
+    const contenedor = document.getElementById('listado-pagos-pendientes');
+    contenedor.innerHTML = '';
+
+    if (!fechaStr) {
+        contenedor.innerHTML = '<p class="text-danger">Selecciona una fecha válida.</p>';
+        return;
+    }
+
+    const pagosFiltrados = pagos.filter(p => {
+        const fechaPago = new Date(p.dueDate).toISOString().split('T')[0];
+        return fechaPago === fechaStr && p.status === 'PENDIENTE';
+    });
+
+    if (pagosFiltrados.length === 0) {
+        contenedor.innerHTML = '<p class="text-muted">No hay pagos pendientes en esta fecha.</p>';
+        return;
+    }
+
+    const lista = document.createElement('ul');
+    lista.classList.add('list-group');
+
+    pagosFiltrados.forEach(pago => {
+        const item = document.createElement('li');
+        item.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+        item.innerHTML = `
+            <span><strong>${pago.clientName}</strong> - Pago #${pago.paymentNumber}</span>
+            <span class="badge bg-warning text-dark">$${pago.amountDue.toFixed(2)}</span>
+        `;
+        lista.appendChild(item);
+    });
+
+    contenedor.appendChild(lista);
+}
+//BORRAR PARA ARRIBA SI NO JALA
         // --- Inicialización de la Aplicación ---
         // Se ejecuta cuando el DOM está completamente cargado
         document.addEventListener('DOMContentLoaded', () => {
